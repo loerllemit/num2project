@@ -10,10 +10,10 @@ class MolDyn:
         self.sigma = 3.4e-10  # in meters
         self.Kb = 1.380649e-23  # in J/K
         self.eps = 120 * self.Kb  # in J
-        self.del_t = 1e-12  # time difference in s
+        self.del_t = 1e-14  # time difference in s
         self.R = 2.25 * self.sigma  # cutoff radius
-        self.N = 10  # 864  # number of particles
-        self.Niter = 100  # total # of time steps
+        self.N = 100  # 864  # number of particles
+        self.Niter = 500  # total # of time steps
         self.L = 10.229 * self.sigma  # box length
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
@@ -24,8 +24,8 @@ class MolDyn:
         ratio = self.sigma / r
         return 4 * self.eps * (ratio**12 - ratio**6)
 
-    def pbc(self, vec_r):  # vec_r = [x,y,z]
-        return vec_r - np.round(vec_r / self.L)
+    def min_image(self, vec_r):  # vec_r = [x,y,z]
+        return vec_r - np.round(vec_r / self.L) * self.L
 
     def fr(self, v_vec):  # time derivative of pos
         return v_vec
@@ -51,9 +51,9 @@ class MolDyn:
         for t in range(self.Niter):
             for i in range(self.N):  # ith particle
                 pos_diff = self.pos - self.pos[i]
-                pos_diff = self.pbc(pos_diff)
+                pos_diff = self.min_image(pos_diff)
                 rvec, vvec = self.euler(self.pos[i], self.vel[i], pos_diff)
-                self.pos[i] = rvec  # update position on ith particle
+                self.pos[i] = rvec % self.L  # update position on ith particle
                 self.vel[i] = vvec  # update velocity on ith particle
             self.pos_config[t] = self.pos
             self.vel_config[t] = self.vel
@@ -65,12 +65,18 @@ ins.main()
 # %matplotlib qt
 
 ax = plt.figure().add_subplot(projection="3d")
-for t in range(10):
+
+for t in range(ins.Niter):
+    ax.clear()
+    ax.set_xlim(0, ins.L)
+    ax.set_ylim(0, ins.L)
+    ax.set_zlim(0, ins.L)
     ax.scatter(
-        ins.pos_config[t, :, 0], ins.pos_config[t, :, 1], ins.pos_config[t, :, 2]
+        ins.pos_config[t, :, 0][0],
+        ins.pos_config[t, :, 1][0],
+        ins.pos_config[t, :, 2][0],
     )
-    # ax.clear()
-    sleep(1)
+    plt.pause(0.5)
 plt.show()
 
 # %%
