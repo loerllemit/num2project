@@ -11,13 +11,16 @@ class MolDyn:
         self.Kb = 1.380649e-23  # in J/K
         self.Temp = 94  # in K
         self.eps = 120 * self.Kb  # in J
-        self.del_t = 1e-12  # time difference in s
+        self.del_t = 1e-13  # time difference in s
         self.Rcut = 2.25 * self.sigma  # cutoff radius
-        self.N = 164  # 864  # number of particles
+        self.N = 800  # 864  # number of particles
         self.Niter = 100  # total # of time steps
         self.L = 10.229 * self.sigma  # box length
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
+        self.acc_config = np.empty(
+            [2, self.N, 3]
+        )  # 0th index for prev and 1st index for next
         self.pos = np.random.rand(self.N, 3) * self.L
         self.vel = self.init_vel()
         # self.vel = np.zeros([self.N, 3])
@@ -26,11 +29,18 @@ class MolDyn:
         R = np.random.rand(self.N, 3) - 0.5
         return R * np.sqrt(3 * self.Kb * self.Temp / self.mass)
 
-    def vel_scaling(self, v_vec):
-        vel_squared = np.linalg.norm(v_vec, ord=2, axis=1) ** 2
+    def get_temp(self, vel):
+        vel_squared = np.linalg.norm(vel, ord=2, axis=1) ** 2
         mean_vel_squared = np.mean(vel_squared)
-        T_curr = self.mass * mean_vel_squared / (3 * self.Kb)
-        return v_vec * np.sqrt(self.Temp / T_curr)
+        return self.mass * mean_vel_squared / (3 * self.Kb)
+
+    def vel_scaling(self, vel):
+        T_curr = self.get_temp(vel)
+        vel = vel * np.sqrt(self.Temp / T_curr)
+        print(T_curr)
+
+        T_curr = self.get_temp(vel)
+        return vel
 
     def len_jones(self, r):
         ratio = self.sigma / r
@@ -39,36 +49,46 @@ class MolDyn:
     def min_image(self, vec_r):  # vec_r = [x,y,z]
         return vec_r - np.round(vec_r / self.L) * self.L
 
-    def fr(self, v_vec):  # time derivative of pos
-        return v_vec
+    def get_acc(self, pos):
+        acc = np.empty([self.N, 3])  # matrix containing acceleration for each particle
+        for i in range(self.N):  # ith particle
+            pos_diff = -(pos - pos[i])
+            pos_diff = self.min_image(pos_diff)
+            dist = np.linalg.norm(
+                pos_diff, ord=2, axis=1
+            )  # distance between ith particle and others
 
-    def fv(self, pos_diff):  # time derivative of velocity
-        self.dist = np.linalg.norm(
-            pos_diff, ord=2, axis=1
-        )  # distance between pairs for a given particle
-        sums = np.zeros([1, 3])
-        for j in range(len(self.dist)):
-            if self.dist[j] != 0 and self.dist[j] <= self.Rcut:
-                ratio = self.sigma / self.dist[j]
-                sums += pos_diff[j] * (2 * ratio**12 - ratio**6) / self.dist[j] ** 2
-        return 24 * self.eps * sums / self.mass
+            sums = np.zeros([1, 3])
+            for j in range(len(dist)):
+                # remove self interaction and include within cutoff
+                if dist[j] != 0 and dist[j] <= self.Rcut:
+                    ratio = self.sigma / dist[j]
+                    # potential using lennard jones
+                    sums += pos_diff[j] * (2 * ratio**12 - ratio**6) / dist[j] ** 2
 
-    def euler(self, r_vec, v_vec, pos_diff):
-        r_vec = r_vec + self.fr(v_vec) * self.del_t
-        v_vec = v_vec + self.fv(pos_diff) * self.del_t
+            acc[i] = 24 * self.eps * sums / self.mass
+        return acc
 
-        return r_vec, v_vec
+    def update_pos(self, pos, vel, acc):
+        pos = pos + vel * self.del_t + 0.5 * acc * self.del_t**2
+        return pos % self.L  # apply periodic BCs
+
+    def update_vel(self, vel):
+        vel = vel + 0.5 * self.del_t * (self.acc_config[0] + self.acc_config[1])
+        return self.vel_scaling(vel)
 
     def main(self):
-        for t in range(self.Niter):  # specific timestep
-            for i in range(self.N):  # ith particle
-                pos_diff = self.pos - self.pos[i]
-                pos_diff = self.min_image(pos_diff)
-                rvec, vvec = self.euler(self.pos[i], self.vel[i], pos_diff)
-                self.pos[i] = rvec % self.L  # update position on ith particle
-                self.vel[i] = self.vel_scaling(vvec)  # update velocity on ith particle
-            self.pos_config[t] = self.pos
-            self.vel_config[t] = self.vel
+        self.pos_config[0] = self.pos
+        self.vel_config[0] = self.vel
+        self.acc_config[0] = self.get_acc(self.pos)
+
+        for t in range(1, self.Niter):  # specific timestep
+            self.pos_config[t] = self.update_pos(
+                self.pos_config[t - 1], self.vel_config[t - 1], self.acc_config[0]
+            )
+            self.acc_config[1] = self.get_acc(self.pos_config[t])
+            self.vel_config[t] = self.update_vel(self.vel_config[t - 1])
+            self.acc_config[0] = self.acc_config[1]
 
 
 ins = MolDyn()
