@@ -11,24 +11,38 @@ class MolDyn:
         self.Kb = 1.380649e-23  # in J/K
         self.Temp = 94  # in K
         self.eps = 120 * self.Kb  # in J
-        self.del_t = 1e-13  # time difference in s
+        self.del_t = 1e-14  # time difference in s
         self.Rcut = 2.25 * self.sigma  # cutoff radius
-        self.N = 100  # 864  # number of particles
-        self.Niter = 200  # total # of time steps
+        self.N = 864  # 864  # number of particles
+        self.Niter = 1000  # total # of time steps
         self.L = 10.229 * self.sigma  # box length
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
         self.acc_config = np.empty(
             [2, self.N, 3]
         )  # 0th index for prev and 1st index for next
-        self.pos = np.random.rand(self.N, 3) * self.L
+        self.pos = self.init_pos()
         self.vel = self.init_vel()
+        # self.pos = np.random.rand(self.N, 3) * self.L
         # self.vel = np.zeros([self.N, 3])
+
+    def init_pos(self):
+        # create equally spaced points in the box
+        # numpts = np.ceil(self.N ** (1 / 3))
+        xyz = (
+            np.mgrid[
+                0 : self.L : self.L / 8,
+                0 : self.L : self.L / 9,
+                0 : self.L : self.L / 12,
+            ]
+            .reshape(3, -1)
+            .T
+        )
+        return xyz[: self.N]
 
     def init_vel(self):
         vel = np.random.rand(self.N, 3) - 0.5
-        # print(self.get_temp(vel))
-        return vel * np.sqrt(self.Kb * self.Temp / self.mass)
+        return 2 * vel * np.sqrt(3 * self.Kb * self.Temp / self.mass)
 
     def get_temp(self, vel):
         vel_squared = np.linalg.norm(vel, ord=2, axis=1) ** 2
@@ -59,13 +73,15 @@ class MolDyn:
                 pos_diff, ord=2, axis=1
             )  # distance between ith particle and others
 
+            # include only within cutoff
+            pos_diff = pos_diff[dist <= self.Rcut]
+            dist = dist[dist <= self.Rcut]
+
             sums = np.zeros([1, 3])
             for j in range(len(dist)):
-                # include only within cutoff
-                if dist[j] <= self.Rcut:
-                    ratio = self.sigma / dist[j]
-                    # potential using lennard jones
-                    sums += pos_diff[j] * (2 * ratio**12 - ratio**6) / dist[j] ** 2
+                ratio = self.sigma / dist[j]
+                # potential using lennard jones
+                sums += pos_diff[j] * (2 * ratio**12 - ratio**6) / dist[j] ** 2
 
             acc[i] = 24 * self.eps * sums / self.mass
         return acc
