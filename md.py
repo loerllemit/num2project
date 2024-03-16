@@ -14,7 +14,7 @@ class MolDyn:
         self.del_t = 1e-14  # time difference in s
         self.Rcut = 2.25 * self.sigma  # cutoff radius
         self.N = 864  # 864  # number of particles
-        self.Niter = 1000  # total # of time steps
+        self.Niter = 2000  # total # of time steps
         self.L = 10.229 * self.sigma  # box length
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
@@ -23,12 +23,9 @@ class MolDyn:
         )  # 0th index for prev and 1st index for next
         self.pos = self.init_pos()
         self.vel = self.init_vel()
-        # self.pos = np.random.rand(self.N, 3) * self.L
-        # self.vel = np.zeros([self.N, 3])
 
     def init_pos(self):
         # create equally spaced points in the box
-        # numpts = np.ceil(self.N ** (1 / 3))
         xyz = (
             np.mgrid[
                 0 : self.L : self.L / 8,
@@ -41,8 +38,11 @@ class MolDyn:
         return xyz[: self.N]
 
     def init_vel(self):
-        vel = np.random.rand(self.N, 3) - 0.5
-        return 2 * vel * np.sqrt(3 * self.Kb * self.Temp / self.mass)
+        # for maxwell-boltzmann dist
+        self.std_dev = np.sqrt(
+            self.Kb * self.Temp * 1.2 / self.mass
+        )  # use higher temp to thermalize faster
+        return self.std_dev * np.random.randn(self.N, 3)
 
     def get_temp(self, vel):
         vel_squared = np.linalg.norm(vel, ord=2, axis=1) ** 2
@@ -114,6 +114,7 @@ ins.main()
 # %matplotlib qt
 
 ax = plt.figure().add_subplot(projection="3d")
+plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
 
 for t in range(ins.Niter):
     ax.clear()
@@ -125,7 +126,7 @@ for t in range(ins.Niter):
         ins.pos_config[t, :, 1][:],
         ins.pos_config[t, :, 2][:],
     )
-    plt.pause(0.5)
+    plt.pause(0.05)
 plt.show()
 
 # %%
