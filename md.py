@@ -13,8 +13,8 @@ class MolDyn:
         self.eps = 120 * self.Kb  # in J
         self.del_t = 1e-13  # time difference in s
         self.Rcut = 2.25 * self.sigma  # cutoff radius
-        self.N = 800  # 864  # number of particles
-        self.Niter = 100  # total # of time steps
+        self.N = 100  # 864  # number of particles
+        self.Niter = 200  # total # of time steps
         self.L = 10.229 * self.sigma  # box length
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
@@ -26,8 +26,9 @@ class MolDyn:
         # self.vel = np.zeros([self.N, 3])
 
     def init_vel(self):
-        R = np.random.rand(self.N, 3) - 0.5
-        return R * np.sqrt(3 * self.Kb * self.Temp / self.mass)
+        vel = np.random.rand(self.N, 3) - 0.5
+        # print(self.get_temp(vel))
+        return vel * np.sqrt(self.Kb * self.Temp / self.mass)
 
     def get_temp(self, vel):
         vel_squared = np.linalg.norm(vel, ord=2, axis=1) ** 2
@@ -36,10 +37,8 @@ class MolDyn:
 
     def vel_scaling(self, vel):
         T_curr = self.get_temp(vel)
-        vel = vel * np.sqrt(self.Temp / T_curr)
         print(T_curr)
-
-        T_curr = self.get_temp(vel)
+        vel = vel * np.sqrt(self.Temp / T_curr)
         return vel
 
     def len_jones(self, r):
@@ -52,7 +51,9 @@ class MolDyn:
     def get_acc(self, pos):
         acc = np.empty([self.N, 3])  # matrix containing acceleration for each particle
         for i in range(self.N):  # ith particle
-            pos_diff = -(pos - pos[i])
+            pos_diff = pos[i] - pos
+            # remove self interaction (j=i)
+            pos_diff = np.delete(pos_diff, i, 0)
             pos_diff = self.min_image(pos_diff)
             dist = np.linalg.norm(
                 pos_diff, ord=2, axis=1
@@ -60,8 +61,8 @@ class MolDyn:
 
             sums = np.zeros([1, 3])
             for j in range(len(dist)):
-                # remove self interaction and include within cutoff
-                if dist[j] != 0 and dist[j] <= self.Rcut:
+                # include only within cutoff
+                if dist[j] <= self.Rcut:
                     ratio = self.sigma / dist[j]
                     # potential using lennard jones
                     sums += pos_diff[j] * (2 * ratio**12 - ratio**6) / dist[j] ** 2
@@ -104,9 +105,9 @@ for t in range(ins.Niter):
     ax.set_ylim(0, ins.L)
     ax.set_zlim(0, ins.L)
     ax.scatter(
-        ins.pos_config[t, :, 0],
-        ins.pos_config[t, :, 1],
-        ins.pos_config[t, :, 2],
+        ins.pos_config[t, :, 0][:],
+        ins.pos_config[t, :, 1][:],
+        ins.pos_config[t, :, 2][:],
     )
     plt.pause(0.5)
 plt.show()
