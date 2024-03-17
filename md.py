@@ -13,7 +13,7 @@ class MolDyn:
         self.del_t = 1e-14  # time difference in s
         self.Rcut = 2.25 * self.sigma  # cutoff radius
         self.N = 864  # 864  # number of particles
-        self.Niter = 500  # total # of time steps
+        self.Niter = 1000  # total # of time steps
         self.L = 10.229 * self.sigma  # box length
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
@@ -105,7 +105,7 @@ class MolDyn:
         self.T_curr = self.get_temp(self.vel_config[0])
         self.temp_arr[0] = self.T_curr
         print(f"Step: {0}")
-        print(self.T_curr)
+        print(f"T={self.T_curr}")
 
         for t in range(1, self.Niter):  # specific timestep
             self.pos_config[t] = self.update_pos(
@@ -118,13 +118,13 @@ class MolDyn:
             self.T_curr = self.get_temp(self.vel_config[t])
             self.temp_arr[t] = self.T_curr
             print(f"Step: {t}")
-            print(self.T_curr)
+            print(f"T={self.T_curr}")
 
 
 class RDF(MolDyn):
     def __init__(self):
         super().__init__()
-        self.bin_num = 30
+        self.bin_num = 60
 
     def get_all_pair_dist(self, pos):
         dist_list = []
@@ -145,19 +145,33 @@ class RDF(MolDyn):
         denominator = 4 * np.pi * bin_centers**2 * dr * ins.N / ins.L**3
         return bin_centers, h / denominator
 
-    def plot_gofr(self, bin_centers, gofr):
+    def plot_gofr(self, x_vals, avg, errors):
         fig, ax = plt.subplots()
-        ax.plot(bin_centers, gofr, marker="o")
+        ax.errorbar(
+            x_vals,
+            avg,
+            yerr=errors,
+            markersize=4,
+            fmt="o-",
+            capsize=3.5,
+        )
+        ax.set_ylabel("radial distribution function", fontsize=15)
+        ax.set_xlabel(r"r/$\sigma$", fontsize=15)
+        ax.set_xlim(0, 5)
+        ax.set_ylim(0)
 
     def combine_gofr(self):
-        tot_gofr_arr = np.zeros([self.bin_num])
-        for count, t in enumerate(range(self.Niter - 50, self.Niter), 1):
-            print(count)
+        snapshots = range(self.Niter - 50, self.Niter)
+        gofr_config = np.empty([len(snapshots), self.bin_num])
+        for count, t in enumerate(snapshots):
             dist_list = self.get_all_pair_dist(self.pos_config[t])
             bin_centers, single_gofr_arr = self.get_gofr(dist_list)
-            tot_gofr_arr += single_gofr_arr
-        tot_gofr_arr = tot_gofr_arr / count
-        self.plot_gofr(bin_centers / self.sigma, tot_gofr_arr)
+            gofr_config[count] = single_gofr_arr
+
+        avg = np.mean(gofr_config, axis=0)
+        errors = np.std(gofr_config, axis=0, ddof=1) / np.sqrt(len(snapshots))
+
+        self.plot_gofr(bin_centers / self.sigma, avg, errors)
 
 
 ins = RDF()
@@ -166,7 +180,6 @@ ins.combine_gofr()
 
 # %%
 # %matplotlib qt
-
 ax = plt.figure().add_subplot(projection="3d")
 plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
 
@@ -183,17 +196,17 @@ for t in range(ins.Niter):
     plt.pause(0.05)
 plt.show()
 
-
 # %%
-# np.mean(ins.temp_arr[100:])
-plt.plot(ins.temp_arr[100:])
+
+plt.plot(ins.temp_arr[0:])
 plt.hlines(np.mean(ins.temp_arr[100:]), 0, ins.Niter, linestyles="dotted")
+np.mean(ins.temp_arr[100:])
 
 # %%
 temp_dat = ins.temp_arr[200:1300]
 np.sqrt(np.mean(temp_dat**2) - np.mean(temp_dat) ** 2) / np.mean(temp_dat)
-
 # %%
+"""
 # rdf
 pos = ins.pos_config[-1]
 i = ins.N // 2
@@ -234,4 +247,4 @@ gofr = h / denominator
 fig, ax = plt.subplots()
 ax.plot(bin_centers, gofr, marker="o")
 
-# %%
+"""
