@@ -1,7 +1,6 @@
 # %%
 import numpy as np
 import matplotlib.pyplot as plt
-from time import sleep
 
 
 class MolDyn:
@@ -14,7 +13,7 @@ class MolDyn:
         self.del_t = 1e-14  # time difference in s
         self.Rcut = 2.25 * self.sigma  # cutoff radius
         self.N = 864  # 864  # number of particles
-        self.Niter = 1500  # total # of time steps
+        self.Niter = 500  # total # of time steps
         self.L = 10.229 * self.sigma  # box length
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
@@ -61,17 +60,21 @@ class MolDyn:
     def min_image(self, vec_r):  # vec_r = [x,y,z]
         return vec_r - np.round(vec_r / self.L) * self.L
 
+    # get displacements and distances for a given ith particle
+    def get_specific_dist(self, pos, index):
+        pos_diff = pos[index] - pos
+        # remove self interaction
+        pos_diff = np.delete(pos_diff, index, 0)
+        pos_diff = self.min_image(pos_diff)
+        dist = np.linalg.norm(
+            pos_diff, ord=2, axis=1
+        )  # distance between ith particle and others
+        return pos_diff, dist
+
     def get_acc(self, pos):
         acc = np.empty([self.N, 3])  # matrix containing acceleration for each particle
         for i in range(self.N):  # ith particle
-            pos_diff = pos[i] - pos
-            # remove self interaction (j=i)
-            pos_diff = np.delete(pos_diff, i, 0)
-            pos_diff = self.min_image(pos_diff)
-            dist = np.linalg.norm(
-                pos_diff, ord=2, axis=1
-            )  # distance between ith particle and others
-
+            pos_diff, dist = self.get_specific_dist(pos, i)
             # include only within cutoff
             pos_diff = pos_diff[dist <= self.Rcut]
             dist = dist[dist <= self.Rcut]
@@ -91,7 +94,7 @@ class MolDyn:
 
     def update_vel(self, vel, timestep):
         vel = vel + 0.5 * self.del_t * (self.acc_config[0] + self.acc_config[1])
-        if timestep < 100:
+        if timestep < 100:  # for thermalization/warmup
             return self.vel_scaling(vel)
         return vel
 
@@ -118,8 +121,49 @@ class MolDyn:
             print(self.T_curr)
 
 
-ins = MolDyn()
+class RDF(MolDyn):
+    def __init__(self):
+        super().__init__()
+        self.bin_num = 30
+
+    def get_all_pair_dist(self, pos):
+        dist_list = []
+        for i in range(self.N):  # ith particle
+            _, dist = self.get_specific_dist(pos, i)
+            dist = dist[i:]
+            # cut off up  to L/2
+            dist = dist[dist <= self.L / 2]
+            dist_list.extend(list(dist))
+        return dist_list
+
+    def get_gofr(self, dist_list):
+        h, bin_edges = np.histogram(
+            dist_list, density=0, bins=self.bin_num, range=(0, self.L / 2)
+        )
+        dr = bin_edges[1] - bin_edges[0]
+        bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2.0
+        denominator = 4 * np.pi * bin_centers**2 * dr * ins.N / ins.L**3
+        return bin_centers, h / denominator
+
+    def plot_gofr(self, bin_centers, gofr):
+        fig, ax = plt.subplots()
+        ax.plot(bin_centers, gofr, marker="o")
+
+    def combine_gofr(self):
+        tot_gofr_arr = np.zeros([self.bin_num])
+        for count, t in enumerate(range(self.Niter - 50, self.Niter), 1):
+            print(count)
+            dist_list = self.get_all_pair_dist(self.pos_config[t])
+            bin_centers, single_gofr_arr = self.get_gofr(dist_list)
+            tot_gofr_arr += single_gofr_arr
+        tot_gofr_arr = tot_gofr_arr / count
+        self.plot_gofr(bin_centers / self.sigma, tot_gofr_arr)
+
+
+ins = RDF()
 ins.main()
+ins.combine_gofr()
+
 # %%
 # %matplotlib qt
 
@@ -142,11 +186,52 @@ plt.show()
 
 # %%
 # np.mean(ins.temp_arr[100:])
-plt.plot(ins.temp_arr[200:])
+plt.plot(ins.temp_arr[100:])
 plt.hlines(np.mean(ins.temp_arr[100:]), 0, ins.Niter, linestyles="dotted")
 
 # %%
 temp_dat = ins.temp_arr[200:1300]
 np.sqrt(np.mean(temp_dat**2) - np.mean(temp_dat) ** 2) / np.mean(temp_dat)
+
+# %%
+# rdf
+pos = ins.pos_config[-1]
+i = ins.N // 2
+pos_diff = pos[i] - pos
+# remove self interaction (j=i)
+pos_diff = np.delete(pos_diff, i, 0)
+pos_diff = ins.min_image(pos_diff)
+dist = np.linalg.norm(
+    pos_diff, ord=2, axis=1
+)  # distance between ith particle and others
+
+# cut up to L/2
+dist = dist[dist <= ins.L / 2]
+
+# fig, ax = plt.subplots()
+# h, bin_edges, patches = ax.hist(
+#     dist,
+#     density=0,
+#     bins=30,
+#     # histtype="step",
+#     # label="T=100 K",
+#     # color=colors[0],
+#     linewidth=2.0,
+# )
+h, bin_edges = np.histogram(
+    dist,
+    density=0,
+    bins=30,
+)
+dr = bin_edges[1] - bin_edges[0]
+bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2.0
+denominator = 4 * np.pi * bin_centers**2 * dr * ins.N / ins.L**3
+gofr = h / denominator
+
+# ax.vlines(ins.L / 2, 0, 60, color="red")
+# %%
+
+fig, ax = plt.subplots()
+ax.plot(bin_centers, gofr, marker="o")
 
 # %%
