@@ -9,18 +9,19 @@ class MolDyn:
         self.mass = 39.95 * 1.6747e-24 / 1000  # in kilograms
         self.sigma = 3.4e-10  # in meters
         self.Kb = 1.380649e-23  # in J/K
-        self.Temp = 94  # in K
+        self.Temp = 94.4  # in K
         self.eps = 120 * self.Kb  # in J
         self.del_t = 1e-14  # time difference in s
         self.Rcut = 2.25 * self.sigma  # cutoff radius
         self.N = 864  # 864  # number of particles
-        self.Niter = 2000  # total # of time steps
+        self.Niter = 1500  # total # of time steps
         self.L = 10.229 * self.sigma  # box length
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
         self.acc_config = np.empty(
             [2, self.N, 3]
         )  # 0th index for prev and 1st index for next
+        self.temp_arr = np.empty(self.Niter)
         self.pos = self.init_pos()
         self.vel = self.init_vel()
 
@@ -50,9 +51,7 @@ class MolDyn:
         return self.mass * mean_vel_squared / (3 * self.Kb)
 
     def vel_scaling(self, vel):
-        T_curr = self.get_temp(vel)
-        print(T_curr)
-        vel = vel * np.sqrt(self.Temp / T_curr)
+        vel = vel * np.sqrt(self.Temp / self.T_curr)
         return vel
 
     def len_jones(self, r):
@@ -90,22 +89,33 @@ class MolDyn:
         pos = pos + vel * self.del_t + 0.5 * acc * self.del_t**2
         return pos % self.L  # apply periodic BCs
 
-    def update_vel(self, vel):
+    def update_vel(self, vel, timestep):
         vel = vel + 0.5 * self.del_t * (self.acc_config[0] + self.acc_config[1])
-        return self.vel_scaling(vel)
+        if timestep < 100:
+            return self.vel_scaling(vel)
+        return vel
 
     def main(self):
         self.pos_config[0] = self.pos
         self.vel_config[0] = self.vel
         self.acc_config[0] = self.get_acc(self.pos)
+        self.T_curr = self.get_temp(self.vel_config[0])
+        self.temp_arr[0] = self.T_curr
+        print(f"Step: {0}")
+        print(self.T_curr)
 
         for t in range(1, self.Niter):  # specific timestep
             self.pos_config[t] = self.update_pos(
                 self.pos_config[t - 1], self.vel_config[t - 1], self.acc_config[0]
             )
             self.acc_config[1] = self.get_acc(self.pos_config[t])
-            self.vel_config[t] = self.update_vel(self.vel_config[t - 1])
+            self.vel_config[t] = self.update_vel(self.vel_config[t - 1], t)
             self.acc_config[0] = self.acc_config[1]
+
+            self.T_curr = self.get_temp(self.vel_config[t])
+            self.temp_arr[t] = self.T_curr
+            print(f"Step: {t}")
+            print(self.T_curr)
 
 
 ins = MolDyn()
@@ -128,5 +138,15 @@ for t in range(ins.Niter):
     )
     plt.pause(0.05)
 plt.show()
+
+
+# %%
+# np.mean(ins.temp_arr[100:])
+plt.plot(ins.temp_arr[200:])
+plt.hlines(np.mean(ins.temp_arr[100:]), 0, ins.Niter, linestyles="dotted")
+
+# %%
+temp_dat = ins.temp_arr[200:1300]
+np.sqrt(np.mean(temp_dat**2) - np.mean(temp_dat) ** 2) / np.mean(temp_dat)
 
 # %%
