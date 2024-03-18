@@ -2,19 +2,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 class MolDyn:
-    def __init__(self):
+    def __init__(self, temp=94):
         self.mass = 39.95 * 1.6747e-24 / 1000  # in kilograms
         self.sigma = 3.4e-10  # in meters
         self.Kb = 1.380649e-23  # in J/K
-        self.Temp = 94.4  # in K
+        self.Temp = temp  # in K
         self.eps = 120 * self.Kb  # in J
         self.del_t = 1e-14  # time difference in s
         self.Rcut = 2.25 * self.sigma  # cutoff radius
         self.N = 864  # 864  # number of particles
-        self.Niter = 1000  # total # of time steps
-        self.L = 10.229 * self.sigma  # box length
+        self.Niter = 300  # total # of time steps
+        self.L = 10.229 * self.sigma   # box length
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
         self.acc_config = np.empty(
@@ -26,21 +25,26 @@ class MolDyn:
 
     def init_pos(self):
         # create equally spaced points in the box
-        xyz = (
-            np.mgrid[
-                0 : self.L : self.L / 8,
-                0 : self.L : self.L / 9,
-                0 : self.L : self.L / 12,
-            ]
-            .reshape(3, -1)
-            .T
-        )
-        return xyz[: self.N]
+        spacing = 0.8*self.sigma
+        x = np.linspace(self.L/2-spacing*4, self.L/2+spacing*4, 8, endpoint=False)
+        y = np.linspace(self.L/2-spacing*4, self.L/2+spacing*5, 9, endpoint=False)
+        z = np.linspace(self.L/2-spacing*6, self.L/2+spacing*6, 12, endpoint=False)
+        # xyz = (
+        #     np.mgrid[
+        #         self.L/2-spacing*4 : self.L/2+spacing*3.9: spacing,
+        #         self.L/2-spacing*5 : self.L/2+spacing*3.9: spacing,
+        #         self.L/2-spacing*6 : self.L/2+spacing*5.9: spacing,
+        #     ]
+        #     .reshape(3, -1)
+        #     .T
+        # )
+        xyz = np.array(np.meshgrid(x, y,z)).reshape(3, -1).T
+        return xyz
 
     def init_vel(self):
         # for maxwell-boltzmann dist
         self.std_dev = np.sqrt(
-            self.Kb * self.Temp * 1.2 / self.mass
+            self.Kb * self.Temp * 1.0 / self.mass
         )  # use higher temp to thermalize faster
         return self.std_dev * np.random.randn(self.N, 3)
 
@@ -94,11 +98,11 @@ class MolDyn:
 
     def update_vel(self, vel, timestep):
         vel = vel + 0.5 * self.del_t * (self.acc_config[0] + self.acc_config[1])
-        if timestep < 100:  # for thermalization/warmup
+        if timestep % 10 == 0:  # for thermalization/warmup
             return self.vel_scaling(vel)
         return vel
 
-    def main(self):
+    def run_md(self):
         self.pos_config[0] = self.pos
         self.vel_config[0] = self.vel
         self.acc_config[0] = self.get_acc(self.pos)
@@ -122,9 +126,9 @@ class MolDyn:
 
 
 class RDF(MolDyn):
-    def __init__(self):
-        super().__init__()
-        self.bin_num = 60
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.bin_num = 100
 
     def get_all_pair_dist(self, pos):
         dist_list = []
@@ -142,7 +146,7 @@ class RDF(MolDyn):
         )
         dr = bin_edges[1] - bin_edges[0]
         bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2.0
-        denominator = 4 * np.pi * bin_centers**2 * dr * ins.N / ins.L**3
+        denominator = 4 * np.pi * bin_centers**2 * dr * self.N / self.L**3
         return bin_centers, h / denominator
 
     def plot_gofr(self, x_vals, avg, errors):
@@ -159,30 +163,64 @@ class RDF(MolDyn):
         ax.set_xlabel(r"r/$\sigma$", fontsize=15)
         ax.set_xlim(0, 5)
         ax.set_ylim(0)
+        fig.savefig(f"T{self.Temp}.pdf", bbox_inches="tight")
 
     def combine_gofr(self):
-        snapshots = range(self.Niter - 50, self.Niter)
+        snapshots = range(-1, -100, -1)
         gofr_config = np.empty([len(snapshots), self.bin_num])
         for count, t in enumerate(snapshots):
             dist_list = self.get_all_pair_dist(self.pos_config[t])
             bin_centers, single_gofr_arr = self.get_gofr(dist_list)
             gofr_config[count] = single_gofr_arr
 
+        x_vals = bin_centers / self.sigma
         avg = np.mean(gofr_config, axis=0)
-        errors = np.std(gofr_config, axis=0, ddof=1) / np.sqrt(len(snapshots))
+        errors = np.std(gofr_config, axis=0, ddof=1)  # / np.sqrt(len(snapshots))
+        return x_vals, avg, errors
 
-        self.plot_gofr(bin_centers / self.sigma, avg, errors)
+        # self.plot_gofr(bin_centers / self.sigma, avg, errors)
 
-
-ins = RDF()
-ins.main()
-ins.combine_gofr()
 
 # %%
-# %matplotlib qt
+ins_50 = RDF(temp=50)
+ins_50.run_md()
+
+ins_94 = RDF(temp=94)
+ins_94.run_md()
+
+ins_400 = RDF(temp=400)
+ins_400.run_md()
+
+# %%
+fig, ax = plt.subplots()
+
+x_vals, avg, errors = ins_50.combine_gofr()
+ax.errorbar(
+    x_vals, avg, yerr=errors, markersize=4, fmt="o-", capsize=3.5, label="T=50 K"
+)
+x_vals, avg, errors = ins_94.combine_gofr()
+ax.errorbar(
+    x_vals, avg, yerr=errors, markersize=4, fmt="s-", capsize=3.5, label="T=94 K"
+)
+x_vals, avg, errors = ins_400.combine_gofr()
+ax.errorbar(
+    x_vals, avg, yerr=errors, markersize=4, fmt="^-", capsize=3.5, label="T=400 K"
+)
+ax.set_ylabel("radial distribution function", fontsize=15)
+ax.set_xlabel(r"r/$\sigma$", fontsize=15)
+ax.set_xlim(0, 5)
+ax.set_ylim(0)
+ax.legend()
+
+
+fig.savefig(f"rdf_combined.pdf", bbox_inches="tight")
+
+# %%
+%matplotlib qt
 ax = plt.figure().add_subplot(projection="3d")
 plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
 
+ins = ins_94
 for t in range(ins.Niter):
     ax.clear()
     ax.set_xlim(0, ins.L)
@@ -193,20 +231,19 @@ for t in range(ins.Niter):
         ins.pos_config[t, :, 1][:],
         ins.pos_config[t, :, 2][:],
     )
-    plt.pause(0.05)
+    plt.pause(0.03)
 plt.show()
 
-# %%
-
-plt.plot(ins.temp_arr[0:])
+# %% temp equilibrium
+plt.plot(ins.temp_arr[50:])
 plt.hlines(np.mean(ins.temp_arr[100:]), 0, ins.Niter, linestyles="dotted")
 np.mean(ins.temp_arr[100:])
 
-# %%
+# %% temp rms deviation
 temp_dat = ins.temp_arr[200:1300]
 np.sqrt(np.mean(temp_dat**2) - np.mean(temp_dat) ** 2) / np.mean(temp_dat)
+
 # %%
-"""
 # rdf
 pos = ins.pos_config[-1]
 i = ins.N // 2
@@ -219,18 +256,18 @@ dist = np.linalg.norm(
 )  # distance between ith particle and others
 
 # cut up to L/2
-dist = dist[dist <= ins.L / 2]
+# dist = dist[dist <= ins.L / 2]
 
-# fig, ax = plt.subplots()
-# h, bin_edges, patches = ax.hist(
-#     dist,
-#     density=0,
-#     bins=30,
-#     # histtype="step",
-#     # label="T=100 K",
-#     # color=colors[0],
-#     linewidth=2.0,
-# )
+fig, ax = plt.subplots()
+h, bin_edges, patches = ax.hist(
+    dist,
+    density=0,
+    bins=30,
+    # histtype="step",
+    # label="T=100 K",
+    # color=colors[0],
+    linewidth=2.0,
+)
 h, bin_edges = np.histogram(
     dist,
     density=0,
@@ -241,10 +278,11 @@ bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2.0
 denominator = 4 * np.pi * bin_centers**2 * dr * ins.N / ins.L**3
 gofr = h / denominator
 
-# ax.vlines(ins.L / 2, 0, 60, color="red")
+ax.vlines(ins.L / 2, 0, 60, color="red")
 # %%
 
 fig, ax = plt.subplots()
 ax.plot(bin_centers, gofr, marker="o")
 
-"""
+
+# %%
