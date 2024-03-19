@@ -176,5 +176,7 @@ pyrightconfig.json
 # numpy array
 *.npy
 
+# temporary folder
+tmp/
 
 # End of https://www.toptal.com/developers/gitignore/api/python

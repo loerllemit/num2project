@@ -4,6 +4,11 @@ from RDF import RDF
 from Plots import Plots
 import matplotlib.pyplot as plt
 
+# %%
+"""
+RUN MOLECULAR DYNAMICS
+"""
+
 ins = MolDyn(
     temp=50,
     Niter=1000,
@@ -13,7 +18,9 @@ ins = MolDyn(
 ins.run_md()
 
 # %%
-########### TEMPERATURE PLOT ##############
+"""
+ TEMPERATURE PLOT 
+"""
 temp = 400
 box_scale = 1
 thermo_rate = 10
@@ -32,8 +39,10 @@ fig, ax = plt.subplots()
 ins.plot_temp(start_time=100, fig=fig, ax=ax)
 
 # %%
-########### RDF PLOT ##############
-box_scale = 1
+"""
+ RDF PLOT 
+"""
+box_scale = 2
 thermo_rate = 10
 equilibration = 500
 Niter = 1000
@@ -66,7 +75,7 @@ fig, ax = plt.subplots()
 ins_50.plot_rdf(label="T=50 K", fmt="o-", fig=fig, ax=ax)
 ins_94.plot_rdf(label="T=94 K", fmt="s-", fig=fig, ax=ax)
 ins_400.plot_rdf(label="T=400 K", fmt="^-", fig=fig, ax=ax)
-fig.savefig(f"rdf_combined_L{box_scale}.pdf", bbox_inches="tight")
+fig.savefig(f"rdf_combined_L{box_scale}.svg", bbox_inches="tight")
 
 # %%
 # ins_50 = RDF(temp=50, box_scale=box_scale)
@@ -75,7 +84,6 @@ fig.savefig(f"rdf_combined_L{box_scale}.pdf", bbox_inches="tight")
 # ins_94.run_md()
 # ins_400 = RDF(temp=400, box_scale=box_scale)
 # ins_400.run_md()
-
 
 # %%
 # fig, ax = plt.subplots()
@@ -102,22 +110,66 @@ fig.savefig(f"rdf_combined_L{box_scale}.pdf", bbox_inches="tight")
 
 # %%
 # %matplotlib qt
-ax = plt.figure().add_subplot(projection="3d")
-plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
+"""
+ ANIMATION
+"""
+temp = 400
+box_scale = 1
+thermo_rate = 10
+equilibration = 500
+Niter = 1000
 
-ins = ins_400
-for t in range(ins.Niter):
-    ax.clear()
-    ax.set_xlim(0, ins.L)
-    ax.set_ylim(0, ins.L)
-    ax.set_zlim(0, ins.L)
-    ax.scatter(
-        ins.pos_config[t, :, 0][:],
-        ins.pos_config[t, :, 1][:],
-        ins.pos_config[t, :, 2][:],
-    )
-    plt.pause(0.03)
-plt.show()
+ins = Plots(
+    temp=temp,
+    box_scale=box_scale,
+    thermo_rate=thermo_rate,
+    equilibration=equilibration,
+    Niter=Niter,
+)
+folder = "/home/loerl/ictp-diploma/num2/project/tmp"
+# ins.load_pos_config()
+ins.make_animation(folder)
+# %%
+
+# ax = plt.figure().add_subplot(projection="3d")
+# plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
+# for t in range(0, ins.Niter):
+#     ax.clear()
+#     ax.set_xlim(0, ins.L)
+#     ax.set_ylim(0, ins.L)
+#     ax.set_zlim(0, ins.L)
+#     ax.scatter(
+#         ins.pos_config[t, :, 0][:],
+#         ins.pos_config[t, :, 1][:],
+#         ins.pos_config[t, :, 2][:],
+#     )
+# plt.pause(0.03)
+# plt.savefig(f"{folder}/{t}.png", dpi=100)
+# plt.show()
+
+# %%
+# import glob
+# from PIL import Image
+# import imageio
+
+# folder = "/home/loerl/ictp-diploma/num2/project/tmp"
+
+
+# def make_gif(frame_folder):
+#     frames = [Image.open(image) for image in sorted(glob.glob(f"{frame_folder}/*.png"))]
+#     frame_one = frames[0]
+#     frame_one.save(
+#         "my_awesome.gif",
+#         format="GIF",
+#         append_images=frames,
+#         save_all=True,
+#         duration=1,
+#         loop=1,
+#     )
+
+
+# make_gif(folder)
+
 
 # %% temp equilibrium
 ins = ins_94
