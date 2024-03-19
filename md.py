@@ -4,17 +4,22 @@ import matplotlib.pyplot as plt
 
 
 class MolDyn:
-    def __init__(self, temp=94, box_scale=1):
+    def __init__(self, temp=94, box_scale=1, thermo_rate=10, equilibration=200):
+        self.Kb = 1.380649e-23  # in J/K
         self.mass = 39.95 * 1.6747e-24 / 1000  # in kilograms
         self.sigma = 3.4e-10  # in meters
-        self.Kb = 1.380649e-23  # in J/K
-        self.Temp = temp  # in K
         self.eps = 120 * self.Kb  # in J
         self.del_t = 1e-14  # time difference in s
         self.Rcut = 2.25 * self.sigma  # cutoff radius
-        self.N = 864  # 864  # number of particles
-        self.Niter = 1000  # total # of time steps
-        self.L = 10.229 * self.sigma * box_scale  # box length
+        self.box_scale = box_scale
+        self.L = 10.229 * self.sigma * self.box_scale  # box length
+        self.Temp = temp  # in K
+        self.N = 864  # number of particles
+        self.Niter = 1500  # total # of time steps
+        self.equilibration = (
+            equilibration  # equilibrate simulation for given # timesteps
+        )
+        self.thermo_rate = thermo_rate  # apply thermostat at every specified intervals
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
         self.acc_config = np.empty(
@@ -97,7 +102,7 @@ class MolDyn:
 
     def update_vel(self, vel, timestep):
         vel = vel + 0.5 * self.del_t * (self.acc_config[0] + self.acc_config[1])
-        if timestep % 10 == 0:  # for thermalization/warmup
+        if timestep % self.thermo_rate == 0:  # apply thermostat at each given interval
             return self.vel_scaling(vel)
         return vel
 
@@ -122,6 +127,17 @@ class MolDyn:
             self.temp_arr[t] = self.T_curr
             print(f"Step: {t}")
             print(f"T={self.T_curr}")
+
+        # save positions for all timesteps
+        np.save(
+            f"positions_T{self.Temp}_L{self.box_scale}_Tr{self.thermo_rate}.npy",
+            self.pos_config,
+        )
+
+        np.save(
+            f"temperatures_T{self.Temp}_L{self.box_scale}_Tr{self.thermo_rate}.npy",
+            self.temp_arr,
+        )
 
 
 class RDF(MolDyn):
@@ -165,7 +181,7 @@ class RDF(MolDyn):
         fig.savefig(f"T{self.Temp}.pdf", bbox_inches="tight")
 
     def combine_gofr(self):
-        snapshots = range(-1, -100, -1)
+        snapshots = range(-1, -200, -10)
         gofr_config = np.empty([len(snapshots), self.bin_num])
         for count, t in enumerate(snapshots):
             dist_list = self.get_all_pair_dist(self.pos_config[t])
@@ -180,14 +196,14 @@ class RDF(MolDyn):
         # self.plot_gofr(bin_centers / self.sigma, avg, errors)
 
 
+box_scale = 1
 # %%
-box_scale = 2
 ins_50 = RDF(temp=50, box_scale=box_scale)
 ins_50.run_md()
-
+# %%
 ins_94 = RDF(temp=94, box_scale=box_scale)
 ins_94.run_md()
-
+# %%
 ins_400 = RDF(temp=400, box_scale=box_scale)
 ins_400.run_md()
 
@@ -215,7 +231,7 @@ ax.legend()
 fig.savefig(f"rdf_combined.pdf", bbox_inches="tight")
 
 # %%
-%matplotlib qt
+# %matplotlib qt
 ax = plt.figure().add_subplot(projection="3d")
 plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
 
@@ -234,9 +250,13 @@ for t in range(ins.Niter):
 plt.show()
 
 # %% temp equilibrium
-plt.plot(ins.temp_arr[50:])
-plt.hlines(np.mean(ins.temp_arr[100:]), 0, ins.Niter, linestyles="dotted")
-np.mean(ins.temp_arr[100:])
+ins = ins_94
+plt.plot(ins.temp_arr[00:])
+plt.hlines(np.mean(ins.temp_arr[200:]), 0, ins.Niter, linestyles="dotted")
+np.mean(ins.temp_arr[150:])
+plt.xlabel(r"timestep (t/$\Delta$t)")
+plt.ylabel("Temperature (K)")
+plt.savefig(f"temp_eq_10rate.pdf", bbox_inches="tight")
 
 # %% temp rms deviation
 temp_dat = ins.temp_arr[200 : ins.Niter]
@@ -255,7 +275,7 @@ dist = np.linalg.norm(
 )  # distance between ith particle and others
 
 # cut up to L/2
-# dist = dist[dist <= ins.L / 2]
+dist = dist[dist <= ins.L / 2]
 
 fig, ax = plt.subplots()
 h, bin_edges, patches = ax.hist(
