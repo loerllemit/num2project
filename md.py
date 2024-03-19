@@ -2,8 +2,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class MolDyn:
-    def __init__(self, temp=94):
+    def __init__(self, temp=94, box_scale=1):
         self.mass = 39.95 * 1.6747e-24 / 1000  # in kilograms
         self.sigma = 3.4e-10  # in meters
         self.Kb = 1.380649e-23  # in J/K
@@ -12,8 +13,8 @@ class MolDyn:
         self.del_t = 1e-14  # time difference in s
         self.Rcut = 2.25 * self.sigma  # cutoff radius
         self.N = 864  # 864  # number of particles
-        self.Niter = 300  # total # of time steps
-        self.L = 10.229 * self.sigma   # box length
+        self.Niter = 1000  # total # of time steps
+        self.L = 10.229 * self.sigma * box_scale  # box length
         self.pos_config = np.empty([self.Niter, self.N, 3])
         self.vel_config = np.empty([self.Niter, self.N, 3])
         self.acc_config = np.empty(
@@ -25,20 +26,18 @@ class MolDyn:
 
     def init_pos(self):
         # create equally spaced points in the box
-        spacing = 0.8*self.sigma
-        x = np.linspace(self.L/2-spacing*4, self.L/2+spacing*4, 8, endpoint=False)
-        y = np.linspace(self.L/2-spacing*4, self.L/2+spacing*5, 9, endpoint=False)
-        z = np.linspace(self.L/2-spacing*6, self.L/2+spacing*6, 12, endpoint=False)
-        # xyz = (
-        #     np.mgrid[
-        #         self.L/2-spacing*4 : self.L/2+spacing*3.9: spacing,
-        #         self.L/2-spacing*5 : self.L/2+spacing*3.9: spacing,
-        #         self.L/2-spacing*6 : self.L/2+spacing*5.9: spacing,
-        #     ]
-        #     .reshape(3, -1)
-        #     .T
-        # )
-        xyz = np.array(np.meshgrid(x, y,z)).reshape(3, -1).T
+        spacing = 0.8 * self.sigma
+        x = np.linspace(
+            self.L / 2 - spacing * 4, self.L / 2 + spacing * 4, 8, endpoint=False
+        )
+        y = np.linspace(
+            self.L / 2 - spacing * 4, self.L / 2 + spacing * 5, 9, endpoint=False
+        )
+        z = np.linspace(
+            self.L / 2 - spacing * 6, self.L / 2 + spacing * 6, 12, endpoint=False
+        )
+
+        xyz = np.array(np.meshgrid(x, y, z)).reshape(3, -1).T
         return xyz
 
     def init_vel(self):
@@ -182,13 +181,14 @@ class RDF(MolDyn):
 
 
 # %%
-ins_50 = RDF(temp=50)
+box_scale = 2
+ins_50 = RDF(temp=50, box_scale=box_scale)
 ins_50.run_md()
 
-ins_94 = RDF(temp=94)
+ins_94 = RDF(temp=94, box_scale=box_scale)
 ins_94.run_md()
 
-ins_400 = RDF(temp=400)
+ins_400 = RDF(temp=400, box_scale=box_scale)
 ins_400.run_md()
 
 # %%
@@ -212,7 +212,6 @@ ax.set_xlim(0, 5)
 ax.set_ylim(0)
 ax.legend()
 
-
 fig.savefig(f"rdf_combined.pdf", bbox_inches="tight")
 
 # %%
@@ -220,7 +219,7 @@ fig.savefig(f"rdf_combined.pdf", bbox_inches="tight")
 ax = plt.figure().add_subplot(projection="3d")
 plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
 
-ins = ins_94
+ins = ins_400
 for t in range(ins.Niter):
     ax.clear()
     ax.set_xlim(0, ins.L)
@@ -240,7 +239,7 @@ plt.hlines(np.mean(ins.temp_arr[100:]), 0, ins.Niter, linestyles="dotted")
 np.mean(ins.temp_arr[100:])
 
 # %% temp rms deviation
-temp_dat = ins.temp_arr[200:1300]
+temp_dat = ins.temp_arr[200 : ins.Niter]
 np.sqrt(np.mean(temp_dat**2) - np.mean(temp_dat) ** 2) / np.mean(temp_dat)
 
 # %%
