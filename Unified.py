@@ -267,3 +267,100 @@ class Plots(RDF):
             duration=10,
             loop=1,
         )
+
+
+# %%
+"""
+RUN MOLECULAR DYNAMICS
+"""
+
+ins = MolDyn(
+    temp=120,
+    box_scale=1,
+    thermo_rate=10,
+    equilibration=500,
+    Niter=2000,
+)
+ins.run_md()
+
+# %%
+"""
+ TEMPERATURE PLOT 
+"""
+temp = 120
+box_scale = 1
+thermo_rate = 10
+equilibration = 500
+Niter = 2000
+
+ins = Plots(
+    temp=temp,
+    box_scale=box_scale,
+    thermo_rate=thermo_rate,
+    equilibration=equilibration,
+    Niter=Niter,
+)
+
+fig, ax = plt.subplots()
+ins.plot_temp(start_time=500, fig=fig, ax=ax)
+
+
+# %%
+"""
+ RDF specific temp PLOT 
+"""
+temp = 120
+box_scale = 1
+thermo_rate = 10
+equilibration = 500
+Niter = 2000
+
+ins = Plots(
+    temp=temp,
+    box_scale=box_scale,
+    thermo_rate=thermo_rate,
+    equilibration=equilibration,
+    Niter=Niter,
+)
+fig, ax = plt.subplots()
+ins.plot_rdf(label=f"T={temp} K", fmt="o-", fig=fig, ax=ax)
+fig.savefig(f"rdf_T{temp}_L{box_scale}.pdf", bbox_inches="tight")
+
+# %%
+"""
+ RDF PLOT 
+"""
+box_scale = 2
+thermo_rate = 10
+equilibration = 500
+Niter = 1000
+
+ins_50 = Plots(
+    temp=50,
+    box_scale=box_scale,
+    thermo_rate=thermo_rate,
+    equilibration=equilibration,
+    Niter=Niter,
+)
+
+ins_94 = Plots(
+    temp=94,
+    box_scale=box_scale,
+    thermo_rate=thermo_rate,
+    equilibration=equilibration,
+    Niter=Niter,
+)
+
+ins_400 = Plots(
+    temp=400,
+    box_scale=box_scale,
+    thermo_rate=thermo_rate,
+    equilibration=equilibration,
+    Niter=Niter,
+)
+
+fig, ax = plt.subplots()
+ins_50.plot_rdf(label="T=50 K", fmt="o-", fig=fig, ax=ax)
+ins_94.plot_rdf(label="T=94 K", fmt="s-", fig=fig, ax=ax)
+ins_400.plot_rdf(label="T=400 K", fmt="^-", fig=fig, ax=ax)
+fig.savefig(f"rdf_combined_L{box_scale}.svg", bbox_inches="tight")

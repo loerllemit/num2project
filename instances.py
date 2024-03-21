@@ -22,7 +22,7 @@ ins.run_md()
 """
  TEMPERATURE PLOT 
 """
-temp = 20
+temp = 120
 box_scale = 1
 thermo_rate = 10
 equilibration = 500
@@ -43,7 +43,7 @@ ins.plot_temp(start_time=500, fig=fig, ax=ax)
 """
  RDF specific temp PLOT 
 """
-temp = 20
+temp = 120
 box_scale = 1
 thermo_rate = 10
 equilibration = 500
@@ -135,11 +135,11 @@ fig.savefig(f"rdf_combined_L{box_scale}.svg", bbox_inches="tight")
 """
  ANIMATION
 """
-temp = 400
+temp = 20
 box_scale = 1
 thermo_rate = 10
 equilibration = 500
-Niter = 1000
+Niter = 2000
 
 ins = Plots(
     temp=temp,
