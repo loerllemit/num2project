@@ -10,10 +10,11 @@ RUN MOLECULAR DYNAMICS
 """
 
 ins = MolDyn(
-    temp=50,
-    Niter=1000,
+    temp=120,
+    box_scale=1,
+    thermo_rate=10,
     equilibration=500,
-    box_scale=2,
+    Niter=2000,
 )
 ins.run_md()
 
@@ -21,11 +22,11 @@ ins.run_md()
 """
  TEMPERATURE PLOT 
 """
-temp = 400
+temp = 20
 box_scale = 1
 thermo_rate = 10
 equilibration = 500
-Niter = 1000
+Niter = 2000
 
 ins = Plots(
     temp=temp,
@@ -36,7 +37,28 @@ ins = Plots(
 )
 
 fig, ax = plt.subplots()
-ins.plot_temp(start_time=100, fig=fig, ax=ax)
+ins.plot_temp(start_time=500, fig=fig, ax=ax)
+
+# %%
+"""
+ RDF specific temp PLOT 
+"""
+temp = 20
+box_scale = 1
+thermo_rate = 10
+equilibration = 500
+Niter = 2000
+
+ins = Plots(
+    temp=temp,
+    box_scale=box_scale,
+    thermo_rate=thermo_rate,
+    equilibration=equilibration,
+    Niter=Niter,
+)
+fig, ax = plt.subplots()
+ins.plot_rdf(label=f"T={temp} K", fmt="o-", fig=fig, ax=ax)
+fig.savefig(f"rdf_T{temp}_L{box_scale}.pdf", bbox_inches="tight")
 
 # %%
 """

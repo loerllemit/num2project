@@ -13,13 +13,13 @@ class RDF(MolDyn):
             _, dist = self.get_specific_dist(pos, i)
             dist = dist[i:]
             # cut off up  to L/2
-            dist = dist[dist <= self.L / 2]
+            dist = dist[dist <= self.L * np.sqrt(3) / 2]
             dist_list.extend(list(dist))
         return dist_list
 
     def get_rdf(self, dist_list):
         h, bin_edges = np.histogram(
-            dist_list, density=0, bins=self.bin_num, range=(0, self.L / 2)
+            dist_list, density=0, bins=self.bin_num, range=(0, self.L * np.sqrt(3) / 2)
         )
         dr = bin_edges[1] - bin_edges[0]
         bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2.0
