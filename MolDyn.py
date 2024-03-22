@@ -68,10 +68,15 @@ class MolDyn:
         return vel.rvs([self.N, 3])
 
     def init_vel(self):
+        # self.std_dev = np.sqrt(self.Kb * self.Temp * 1.0 / self.mass)
         return np.random.rand(self.N, 3)
 
     def init_vel3(self):
-        return np.zeros([self.N, 3])
+        vel0_mag = np.sqrt(3 * self.Kb * self.Temp / self.mass)
+        vel = np.random.randn(self.N, 3)
+        vel_norm = np.linalg.norm(vel, ord=2, axis=1)
+        vel = vel0_mag * np.random.randn(self.N, 3) / vel_norm[:, None]
+        return vel
 
     def get_temp(self, vel):
         vel_squared = np.linalg.norm(vel, ord=2, axis=1) ** 2

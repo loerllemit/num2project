@@ -179,4 +179,7 @@ pyrightconfig.json
 # temporary folder
 tmp/
 
+*.pdf
+*.gif
+
 # End of https://www.toptal.com/developers/gitignore/api/python

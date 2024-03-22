@@ -12,7 +12,7 @@ class RDF(MolDyn):
         for i in range(self.N):  # ith particle
             _, dist = self.get_specific_dist(pos, i)
             dist = dist[i:]
-            # cut off up  to L/2
+            # cut off up  to largest possible distance
             dist = dist[dist <= self.L * np.sqrt(3) / 2]
             dist_list.extend(list(dist))
         return dist_list
