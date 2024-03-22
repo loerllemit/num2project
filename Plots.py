@@ -59,7 +59,7 @@ class Plots(RDF):
         self.load_pos_config()
         ax = plt.figure().add_subplot(projection="3d")
         plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
-        for t in range(0, self.Niter):
+        for t in range(0, self.Niter, 20):
             ax.clear()
             ax.set_xlabel(r"x ($\AA$)")
             ax.set_ylabel(r"y ($\AA$)")
@@ -83,6 +83,6 @@ class Plots(RDF):
             format="GIF",
             append_images=frames,
             save_all=True,
-            duration=10,
+            duration=250,
             loop=1,
         )

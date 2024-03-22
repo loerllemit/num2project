@@ -27,14 +27,14 @@ class RDF(MolDyn):
         return bin_centers, h / denominator
 
     def combine_rdf(self):
-        snapshots = range(-1, -self.Niter // 2, -10)
+        snapshots = np.linspace(self.equilibration, self.Niter, num=8, endpoint=False)
         rdf_config = np.empty([len(snapshots), self.bin_num])
         for count, t in enumerate(snapshots):
-            dist_list = self.get_all_pair_dist(self.pos_config[t])
+            dist_list = self.get_all_pair_dist(self.pos_config[int(t)])
             bin_centers, single_rdf_arr = self.get_rdf(dist_list)
-            rdf_config[count] = single_rdf_arr
+            rdf_config[count] = single_rdf_arr / self.N
 
         x_vals = bin_centers / self.sigma
         avg = np.mean(rdf_config, axis=0)
-        errors = np.std(rdf_config, axis=0, ddof=1)  # / np.sqrt(len(snapshots))
+        errors = np.std(rdf_config, axis=0, ddof=1) / np.sqrt(len(snapshots))
         return x_vals, avg, errors

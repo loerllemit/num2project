@@ -1,6 +1,6 @@
 # %%
 import numpy as np
-import matplotlib.pyplot as plt
+import scipy.stats as stats
 
 
 class MolDyn:
@@ -31,7 +31,7 @@ class MolDyn:
         self.pos = self.init_pos()
         self.vel = self.init_vel()
 
-    def init_pos(self):
+    def init_pos1(self):
         # create equally spaced points in the box
         spacing = 0.8 * self.sigma
         x = np.linspace(
@@ -47,12 +47,31 @@ class MolDyn:
         xyz = np.array(np.meshgrid(x, y, z)).reshape(3, -1).T
         return xyz
 
-    def init_vel(self):
+    def init_pos(self):
+        lat_const = self.L  # self.sigma * 1.265 * 6
+        xyz = np.genfromtxt("crystal_structure/Ar.vasp", skip_header=8)
+        return xyz * lat_const
+
+    def init_vel1(self):
         # for maxwell-boltzmann dist
-        self.std_dev = np.sqrt(
-            self.Kb * self.Temp * 1.0 / self.mass
-        )  # use higher temp to thermalize faster
+        self.std_dev = np.sqrt(self.Kb * self.Temp * 1.0 / self.mass)
         return self.std_dev * np.random.randn(self.N, 3)
+
+    def init_vel2(self):
+        # for maxwell-boltzmann dist
+        self.std_dev = np.sqrt(self.Kb * self.Temp * 1.0 / self.mass)
+        # truncated dist. to remove ~5% ultrafast velocities
+        vel = stats.truncnorm(
+            -1 * self.std_dev, 1 * self.std_dev, loc=0, scale=self.std_dev
+        )
+
+        return vel.rvs([self.N, 3])
+
+    def init_vel(self):
+        return np.random.rand(self.N, 3)
+
+    def init_vel3(self):
+        return np.zeros([self.N, 3])
 
     def get_temp(self, vel):
         vel_squared = np.linalg.norm(vel, ord=2, axis=1) ** 2
@@ -141,3 +160,18 @@ class MolDyn:
             f"data/temperatures_T{self.Temp}_L{self.box_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
             self.temp_arr,
         )
+
+
+# # %%
+# ins = MolDyn()
+# # %%
+# %matplotlib qt
+
+# ins.init_pos()
+# ax = plt.figure().add_subplot(projection="3d")
+# xyz = ins.init_pos()*ins.L / 1e-10
+# ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2])
+# ax.set_xlim(0, ins.L / 1e-10)
+# ax.set_ylim(0, ins.L / 1e-10)
+# ax.set_zlim(0, ins.L / 1e-10)
+# # %%
