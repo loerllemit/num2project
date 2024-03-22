@@ -5,16 +5,23 @@ import scipy.stats as stats
 
 class MolDyn:
     def __init__(
-        self, temp=94, box_scale=1, thermo_rate=10, equilibration=200, Niter=1500
+        self,
+        temp=94,
+        box_scale=1,
+        rcut_scale=1,
+        thermo_rate=10,
+        equilibration=200,
+        Niter=1500,
     ):
         self.Kb = 1.380649e-23  # in J/K
         self.mass = 39.95 * 1.6747e-24 / 1000  # in kilograms
         self.sigma = 3.4e-10  # in meters
         self.eps = 120 * self.Kb  # in J
         self.del_t = 1e-14  # time difference in s
-        self.Rcut = 2.25 * self.sigma  # cutoff radius
         self.box_scale = box_scale
+        self.rcut_scale = rcut_scale
         self.L = 10.229 * self.sigma * self.box_scale  # box length
+        self.Rcut = 2.25 * self.sigma * self.rcut_scale  # cutoff radius
         self.Temp = temp  # in K
         self.N = 864  # number of particles
         self.Niter = Niter  # total # of time steps
@@ -48,7 +55,7 @@ class MolDyn:
         return xyz
 
     def init_pos(self):
-        lat_const = self.L  # self.sigma * 1.265 * 6
+        lat_const = self.L / self.box_scale
         xyz = np.genfromtxt("crystal_structure/Ar.vasp", skip_header=8)
         return xyz * lat_const
 
@@ -157,26 +164,11 @@ class MolDyn:
 
         # save positions for all timesteps
         np.save(
-            f"data/positions_T{self.Temp}_L{self.box_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
+            f"data/positions_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
             self.pos_config,
         )
         # save temperatures for all timesteps
         np.save(
-            f"data/temperatures_T{self.Temp}_L{self.box_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
+            f"data/temperatures_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
             self.temp_arr,
         )
-
-
-# # %%
-# ins = MolDyn()
-# # %%
-# %matplotlib qt
-
-# ins.init_pos()
-# ax = plt.figure().add_subplot(projection="3d")
-# xyz = ins.init_pos()*ins.L / 1e-10
-# ax.scatter(xyz[:, 0], xyz[:, 1], xyz[:, 2])
-# ax.set_xlim(0, ins.L / 1e-10)
-# ax.set_ylim(0, ins.L / 1e-10)
-# ax.set_zlim(0, ins.L / 1e-10)
-# # %%

@@ -9,19 +9,20 @@ from PIL import Image
 class Plots(RDF):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.load_temp_arr()
+        self.load_pos_config()
 
     def load_temp_arr(self):
         self.temp_arr = np.load(
-            f"data/temperatures_T{self.Temp}_L{self.box_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy"
+            f"data/temperatures_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy"
         )
 
     def load_pos_config(self):
         self.pos_config = np.load(
-            f"data/positions_T{self.Temp}_L{self.box_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
+            f"data/positions_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
         )
 
     def plot_temp(self, start_time, fig, ax):
-        self.load_temp_arr()
         ax.plot(range(start_time, self.Niter), self.temp_arr[start_time:])
         plt.hlines(
             np.mean(self.temp_arr[start_time:]),
@@ -33,7 +34,7 @@ class Plots(RDF):
         ax.set_xlabel(r"timestep (t/$\Delta$t)")
         ax.set_ylabel("Temperature (K)")
         fig.savefig(
-            f"temperatures_T{self.Temp}_L{self.box_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.pdf",
+            f"temperatures_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.pdf",
             bbox_inches="tight",
         )
 
@@ -44,7 +45,6 @@ class Plots(RDF):
         ax,
         fmt="o-",
     ):
-        self.load_pos_config()
         x_vals, avg, errors = self.combine_rdf()
         ax.errorbar(
             x_vals / self.sigma,
@@ -62,7 +62,6 @@ class Plots(RDF):
         ax.legend()
 
     def plot_cdf(self, label, fig, ax, linestyle="-"):
-        self.load_pos_config()
         x_vals, running_sum = self.combine_cdf()
         ax.plot(x_vals / self.sigma, running_sum, label=label, linestyle=linestyle)
         ax.set_ylabel("number of particles", fontsize=15)
@@ -72,10 +71,10 @@ class Plots(RDF):
         ax.legend()
 
     def make_animation(self, frame_folder):
-        self.load_pos_config()
         ax = plt.figure().add_subplot(projection="3d")
         plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
-        for t in range(0, self.Niter, 20):
+        for t in np.linspace(0, self.Niter, num=50, endpoint=False):
+            t = int(t)
             ax.clear()
             ax.set_xlabel(r"x ($\AA$)")
             ax.set_ylabel(r"y ($\AA$)")
@@ -95,10 +94,10 @@ class Plots(RDF):
         ]
         frame_one = frames[0]
         frame_one.save(
-            f"animate_T{self.Temp}_L{self.box_scale}.gif",
+            f"animate_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.gif",
             format="GIF",
             append_images=frames,
             save_all=True,
-            duration=250,
+            duration=200,
             loop=1,
         )
