@@ -47,11 +47,27 @@ class Plots(RDF):
         self.load_pos_config()
         x_vals, avg, errors = self.combine_rdf()
         ax.errorbar(
-            x_vals, avg, yerr=errors, markersize=4, fmt=fmt, capsize=3.5, label=label
+            x_vals / self.sigma,
+            avg,
+            yerr=errors,
+            markersize=4,
+            fmt=fmt,
+            capsize=3.5,
+            label=label,
         )
         ax.set_ylabel("radial distribution function", fontsize=15)
         ax.set_xlabel(r"r/$\sigma$", fontsize=15)
         ax.set_xlim(0, 5)
+        ax.set_ylim(0)
+        ax.legend()
+
+    def plot_cdf(self, label, fig, ax, linestyle="-"):
+        self.load_pos_config()
+        x_vals, running_sum = self.combine_cdf()
+        ax.plot(x_vals / self.sigma, running_sum, label=label, linestyle=linestyle)
+        ax.set_ylabel("number of particles", fontsize=15)
+        ax.set_xlabel(r"r/$\sigma$", fontsize=15)
+        ax.set_xlim(0, self.L * np.sqrt(3) / (2 * self.sigma))
         ax.set_ylim(0)
         ax.legend()
 

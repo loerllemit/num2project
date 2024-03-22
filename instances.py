@@ -3,6 +3,8 @@ from MolDyn import MolDyn
 from RDF import RDF
 from Plots import Plots
 import matplotlib.pyplot as plt
+import numpy as np
+import time
 
 # %%
 """
@@ -14,9 +16,13 @@ ins = MolDyn(
     box_scale=1,
     thermo_rate=10,
     equilibration=500,
-    Niter=1000,
+    Niter=2000,
 )
+start = time.time()
 ins.run_md()
+end = time.time()
+print(end - start)
+
 
 # %%
 """
@@ -26,7 +32,7 @@ temp = 50
 box_scale = 1
 thermo_rate = 10
 equilibration = 500
-Niter = 1000
+Niter = 2000
 
 ins = Plots(
     temp=temp,
@@ -47,7 +53,7 @@ temp = 50
 box_scale = 1
 thermo_rate = 10
 equilibration = 500
-Niter = 1000
+Niter = 2000
 
 
 ins = Plots(
@@ -93,12 +99,23 @@ ins_300 = Plots(
     equilibration=equilibration,
     Niter=Niter,
 )
-
+# %%
 fig, ax = plt.subplots()
 ins_50.plot_rdf(label="T=50 K", fmt="o-", fig=fig, ax=ax)
 ins_94.plot_rdf(label="T=94 K", fmt="s-", fig=fig, ax=ax)
 ins_300.plot_rdf(label="T=300 K", fmt="^-", fig=fig, ax=ax)
 fig.savefig(f"rdf_combined_L{box_scale}.pdf", bbox_inches="tight")
+# ax.set_xlim(0,8)
+# %%
+"""
+CDF Plot
+"""
+fig, ax = plt.subplots()
+ins_50.plot_cdf(label=f"T=50 K", fig=fig, ax=ax, linestyle="--")
+ins_94.plot_cdf(label=f"T=94 K", fig=fig, ax=ax, linestyle="-")
+ins_300.plot_cdf(label=f"T=300 K", fig=fig, ax=ax, linestyle=":")
+fig.savefig(f"cdf_combined_L{box_scale}.pdf", bbox_inches="tight")
+
 
 # %%
 # ins_50 = RDF(temp=50, box_scale=box_scale)
@@ -141,7 +158,7 @@ temp = 50
 box_scale = 1
 thermo_rate = 10
 equilibration = 500
-Niter = 1000
+Niter = 2000
 
 ins = Plots(
     temp=temp,
