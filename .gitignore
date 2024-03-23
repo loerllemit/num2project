@@ -180,6 +180,6 @@ pyrightconfig.json
 tmp/
 
 *.pdf
-*.gif
+# *.gif
 
 # End of https://www.toptal.com/developers/gitignore/api/python

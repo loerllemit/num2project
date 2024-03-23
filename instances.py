@@ -11,8 +11,8 @@ dpi = 400
 
 temp = 94
 thermo_rate = 10
-box_scale = 1
-rcut_scale = 2
+box_scale = 2
+rcut_scale = 1
 equilibration = 500
 Niter = 2000
 # %%
@@ -118,12 +118,13 @@ fig, ax = plt.subplots()
 ins_50.plot_rdf(label="T=50 K", fmt="o-", fig=fig, ax=ax)
 ins_94.plot_rdf(label="T=94 K", fmt="s-", fig=fig, ax=ax)
 ins_300.plot_rdf(label="T=300 K", fmt="^-", fig=fig, ax=ax)
-fig.savefig(
-    f"plots/rdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
-    bbox_inches="tight",
-    dpi=dpi,
-)
-# ax.set_xlim(0,8)
+# fig.savefig(
+#     f"plots/rdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+#     bbox_inches="tight",
+#     dpi=dpi,
+# )
+ax.set_xlim(0,ins_50.L*np.sqrt(3)/(2*ins_50.sigma))
+ax.axhline(1, 0, ins_50.L * np.sqrt(3) / (2 * ins_50.sigma))
 # %%
 """
 CDF Plot
