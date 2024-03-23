@@ -94,6 +94,6 @@ class Plots(RDF):
             format="GIF",
             append_images=frames,
             save_all=True,
-            duration=200,
+            duration=100,
             loop=1,
         )

@@ -9,10 +9,10 @@ import time
 file_format = "png"
 dpi = 400
 
-temp = 300
+temp = 94
 thermo_rate = 10
-box_scale = 2
-rcut_scale = 1
+box_scale = 1
+rcut_scale = 2
 equilibration = 500
 Niter = 2000
 # %%
@@ -30,7 +30,7 @@ ins = MolDyn(
 )
 # time the execution
 start = time.time()
-# ins.run_md()
+ins.run_md()
 end = time.time()
 print("execution time: ", end - start)
 
@@ -137,8 +137,23 @@ fig.savefig(
     bbox_inches="tight",
     dpi=dpi,
 )
+# zoom-in at rcut and  highlight nearest neighbors
 ax.set_xlim(0, ins_50.Rcut / ins.sigma)
 ax.set_ylim(0, 60)
+
+ax.axhline(12, 0, ins_50.Rcut / ins.sigma, color="black", linestyle=":", linewidth=1)
+ax.axhline(
+    12 + 6, 0, ins_50.Rcut / ins.sigma, color="black", linestyle=":", linewidth=1
+)
+ax.axhline(
+    12 + 6 + 24, 0, ins_50.Rcut / ins.sigma, color="black", linestyle=":", linewidth=1
+)
+
+fig.savefig(
+    f"cdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_zoom.{file_format}",
+    bbox_inches="tight",
+    dpi=dpi,
+)
 
 
 # %%
