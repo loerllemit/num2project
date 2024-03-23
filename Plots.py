@@ -33,6 +33,12 @@ class Plots(RDF):
         np.mean(self.temp_arr[start_time:])
         ax.set_xlabel(r"timestep (t/$\Delta$t)", fontsize=15)
         ax.set_ylabel("Temperature (K)", fontsize=15)
+        ax.set_xlim(start_time, self.Niter)
+        ax.set_title(
+            rf"T={self.Temp} K, L={self.box_scale}, R$_{{cut}}$={self.rcut_scale}",
+            fontsize=20,
+            fontweight="bold",
+        )
 
     def plot_rdf(
         self,
@@ -53,7 +59,7 @@ class Plots(RDF):
         )
         ax.set_ylabel("radial distribution function", fontsize=15)
         ax.set_xlabel(r"r/$\sigma$", fontsize=15)
-        ax.set_xlim(0, 5)
+        ax.set_xlim(0, self.L * np.sqrt(3) / (4 * self.sigma))
         ax.set_ylim(0)
         ax.legend()
 
@@ -68,7 +74,7 @@ class Plots(RDF):
 
     def make_animation(self, frame_folder):
         ax = plt.figure().add_subplot(projection="3d")
-        plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
+        plt.subplots_adjust(right=1, top=0.92, left=0, bottom=0)
         for t in np.linspace(0, self.Niter, num=50, endpoint=False):
             t = int(t)
             ax.clear()
@@ -83,6 +89,11 @@ class Plots(RDF):
                 self.pos_config[t, :, 1] / 1e-10,
                 self.pos_config[t, :, 2] / 1e-10,
             )
+            plt.title(
+                rf"T={self.Temp} K, L={self.box_scale}, R$_{{cut}}$={self.rcut_scale}",
+                fontsize=20,
+                fontweight="bold",
+            )
             plt.savefig(f"{frame_folder}/{t}.png", dpi=100)
 
         frames = [
@@ -90,7 +101,7 @@ class Plots(RDF):
         ]
         frame_one = frames[0]
         frame_one.save(
-            f"animate_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.gif",
+            f"plots/animate_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.gif",
             format="GIF",
             append_images=frames,
             save_all=True,

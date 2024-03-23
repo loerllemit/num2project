@@ -9,9 +9,9 @@ import time
 file_format = "png"
 dpi = 400
 
-temp = 94
+temp = 50
 thermo_rate = 10
-box_scale = 2
+box_scale = 1
 rcut_scale = 1
 equilibration = 500
 Niter = 2000
@@ -30,7 +30,7 @@ ins = MolDyn(
 )
 # time the execution
 start = time.time()
-ins.run_md()
+# ins.run_md()
 end = time.time()
 print("execution time: ", end - start)
 
@@ -51,6 +51,7 @@ ins = Plots(
 
 fig, ax = plt.subplots()
 ins.plot_temp(start_time=500, fig=fig, ax=ax)
+
 fig.savefig(
     f"plots/temperatures_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
@@ -75,6 +76,11 @@ ins = Plots(
 )
 fig, ax = plt.subplots()
 ins.plot_rdf(label=f"T={temp} K", fmt="o-", fig=fig, ax=ax)
+ax.set_title(
+    rf"T={temp} K, L={box_scale}, R$_{{cut}}$={rcut_scale}",
+    fontsize=20,
+    fontweight="bold",
+)
 fig.savefig(
     f"plots/rdf_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
@@ -118,13 +124,16 @@ fig, ax = plt.subplots()
 ins_50.plot_rdf(label="T=50 K", fmt="o-", fig=fig, ax=ax)
 ins_94.plot_rdf(label="T=94 K", fmt="s-", fig=fig, ax=ax)
 ins_300.plot_rdf(label="T=300 K", fmt="^-", fig=fig, ax=ax)
-# fig.savefig(
-#     f"plots/rdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
-#     bbox_inches="tight",
-#     dpi=dpi,
-# )
-ax.set_xlim(0,ins_50.L*np.sqrt(3)/(2*ins_50.sigma))
-ax.axhline(1, 0, ins_50.L * np.sqrt(3) / (2 * ins_50.sigma))
+ax.set_title(
+    rf"L={box_scale}, R$_{{cut}}$={rcut_scale}",
+    fontsize=20,
+    fontweight="bold",
+)
+fig.savefig(
+    f"plots/rdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    bbox_inches="tight",
+    dpi=dpi,
+)
 # %%
 """
 CDF Plot
@@ -133,6 +142,11 @@ fig, ax = plt.subplots()
 ins_50.plot_cdf(label=f"T=50 K", fig=fig, ax=ax, linestyle="--")
 ins_94.plot_cdf(label=f"T=94 K", fig=fig, ax=ax, linestyle="-")
 ins_300.plot_cdf(label=f"T=300 K", fig=fig, ax=ax, linestyle=":")
+ax.set_title(
+    rf"L={box_scale}, R$_{{cut}}$={rcut_scale}",
+    fontsize=20,
+    fontweight="bold",
+)
 fig.savefig(
     f"plots/cdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
@@ -149,7 +163,6 @@ ax.axhline(
 ax.axhline(
     12 + 6 + 24, 0, ins_50.Rcut / ins.sigma, color="black", linestyle=":", linewidth=1
 )
-
 fig.savefig(
     f"plots/cdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_zoom.{file_format}",
     bbox_inches="tight",

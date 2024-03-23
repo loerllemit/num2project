@@ -42,8 +42,11 @@ ins_2 = Plots(
 fig, ax = plt.subplots()
 ins_1.plot_rdf(label=r"$R_{cut}=1$", fmt="o-", fig=fig, ax=ax)
 ins_2.plot_rdf(label=r"$R_{cut}=2$", fmt="s-", fig=fig, ax=ax)
-ax.set_xlim(0, 6)
-
+ax.set_title(
+    rf"T={temp} K, L={box_scale}",
+    fontsize=20,
+    fontweight="bold",
+)
 fig.savefig(
     f"plots/rdf_combined_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
@@ -57,6 +60,11 @@ CDF Plot
 fig, ax = plt.subplots()
 ins_1.plot_cdf(label=r"$R_{cut}=1$", fig=fig, ax=ax, linestyle="--")
 ins_2.plot_cdf(label=r"$R_{cut}=2$", fig=fig, ax=ax, linestyle="-")
+ax.set_title(
+    rf"T={temp} K, L={box_scale}",
+    fontsize=20,
+    fontweight="bold",
+)
 fig.savefig(
     f"plots/cdf_combined_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
@@ -72,6 +80,22 @@ ax.axhline(
 )
 ax.axhline(
     12 + 6 + 24, 0, ins_2.Rcut / ins_1.sigma, color="black", linestyle=":", linewidth=1
+)
+ax.axhline(
+    12 + 6 + 24 + 12,
+    0,
+    ins_2.Rcut / ins_1.sigma,
+    color="black",
+    linestyle=":",
+    linewidth=1,
+)
+ax.axhline(
+    12 + 6 + 24 + 12 + 24,
+    0,
+    ins_2.Rcut / ins_1.sigma,
+    color="black",
+    linestyle=":",
+    linewidth=1,
 )
 fig.savefig(
     f"plots/cdf_combined_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_zoom.{file_format}",
