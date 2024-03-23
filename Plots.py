@@ -31,12 +31,8 @@ class Plots(RDF):
             linestyles="dotted",
         )
         np.mean(self.temp_arr[start_time:])
-        ax.set_xlabel(r"timestep (t/$\Delta$t)")
-        ax.set_ylabel("Temperature (K)")
-        fig.savefig(
-            f"temperatures_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.pdf",
-            bbox_inches="tight",
-        )
+        ax.set_xlabel(r"timestep (t/$\Delta$t)", fontsize=15)
+        ax.set_ylabel("Temperature (K)", fontsize=15)
 
     def plot_rdf(
         self,

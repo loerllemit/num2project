@@ -14,7 +14,7 @@ RUN MOLECULAR DYNAMICS
 ins = MolDyn(
     temp=300,
     thermo_rate=10,
-    box_scale=2,
+    box_scale=1,
     rcut_scale=1,
     equilibration=500,
     Niter=2000,
