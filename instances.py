@@ -52,7 +52,7 @@ ins = Plots(
 fig, ax = plt.subplots()
 ins.plot_temp(start_time=500, fig=fig, ax=ax)
 fig.savefig(
-    f"temperatures_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    f"plots/temperatures_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
     dpi=dpi,
 )
@@ -76,7 +76,7 @@ ins = Plots(
 fig, ax = plt.subplots()
 ins.plot_rdf(label=f"T={temp} K", fmt="o-", fig=fig, ax=ax)
 fig.savefig(
-    f"rdf_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    f"plots/rdf_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
     dpi=dpi,
 )
@@ -119,7 +119,7 @@ ins_50.plot_rdf(label="T=50 K", fmt="o-", fig=fig, ax=ax)
 ins_94.plot_rdf(label="T=94 K", fmt="s-", fig=fig, ax=ax)
 ins_300.plot_rdf(label="T=300 K", fmt="^-", fig=fig, ax=ax)
 fig.savefig(
-    f"rdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    f"plots/rdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
     dpi=dpi,
 )
@@ -133,7 +133,7 @@ ins_50.plot_cdf(label=f"T=50 K", fig=fig, ax=ax, linestyle="--")
 ins_94.plot_cdf(label=f"T=94 K", fig=fig, ax=ax, linestyle="-")
 ins_300.plot_cdf(label=f"T=300 K", fig=fig, ax=ax, linestyle=":")
 fig.savefig(
-    f"cdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    f"plots/cdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
     dpi=dpi,
 )
@@ -150,7 +150,7 @@ ax.axhline(
 )
 
 fig.savefig(
-    f"cdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_zoom.{file_format}",
+    f"plots/cdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_zoom.{file_format}",
     bbox_inches="tight",
     dpi=dpi,
 )

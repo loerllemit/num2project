@@ -45,7 +45,7 @@ ins_2.plot_rdf(label=r"$R_{cut}=2$", fmt="s-", fig=fig, ax=ax)
 ax.set_xlim(0, 6)
 
 fig.savefig(
-    f"rdf_combined_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    f"plots/rdf_combined_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
     dpi=dpi,
 )
@@ -58,7 +58,7 @@ fig, ax = plt.subplots()
 ins_1.plot_cdf(label=r"$R_{cut}=1$", fig=fig, ax=ax, linestyle="--")
 ins_2.plot_cdf(label=r"$R_{cut}=2$", fig=fig, ax=ax, linestyle="-")
 fig.savefig(
-    f"cdf_combined_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    f"plots/cdf_combined_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
     bbox_inches="tight",
     dpi=dpi,
 )
@@ -74,7 +74,7 @@ ax.axhline(
     12 + 6 + 24, 0, ins_2.Rcut / ins_1.sigma, color="black", linestyle=":", linewidth=1
 )
 fig.savefig(
-    f"cdf_combined_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_zoom.{file_format}",
+    f"plots/cdf_combined_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_zoom.{file_format}",
     bbox_inches="tight",
     dpi=dpi,
 )
