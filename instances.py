@@ -11,7 +11,7 @@ dpi = 400
 
 temp = 50
 thermo_rate = 10
-box_scale = 1
+box_scale = 2
 rcut_scale = 1
 equilibration = 500
 Niter = 2000
@@ -119,8 +119,13 @@ ins_300 = Plots(
     equilibration=equilibration,
     Niter=Niter,
 )
+
+
 # %%
 fig, ax = plt.subplots()
+ins_50.plot_specific_rdf(
+    time_snapshot=0, label=r"initial", linestyle=":", fig=fig, ax=ax
+)
 ins_50.plot_rdf(label="T=50 K", fmt="o-", fig=fig, ax=ax)
 ins_94.plot_rdf(label="T=94 K", fmt="s-", fig=fig, ax=ax)
 ins_300.plot_rdf(label="T=300 K", fmt="^-", fig=fig, ax=ax)
@@ -139,9 +144,13 @@ fig.savefig(
 CDF Plot
 """
 fig, ax = plt.subplots()
+ins_50.plot_specific_cdf(
+    time_snapshot=0, label=r"initial", fig=fig, ax=ax, linestyle=":"
+)
 ins_50.plot_cdf(label=f"T=50 K", fig=fig, ax=ax, linestyle="--")
 ins_94.plot_cdf(label=f"T=94 K", fig=fig, ax=ax, linestyle="-")
-ins_300.plot_cdf(label=f"T=300 K", fig=fig, ax=ax, linestyle=":")
+ins_300.plot_cdf(label=f"T=300 K", fig=fig, ax=ax, linestyle="-.")
+
 ax.set_title(
     rf"L={box_scale}, R$_{{cut}}$={rcut_scale}",
     fontsize=20,
@@ -153,16 +162,9 @@ fig.savefig(
     dpi=dpi,
 )
 # zoom-in at rcut and  highlight nearest neighbors
-ax.set_xlim(0, ins_50.Rcut / ins.sigma)
+ax.set_xlim(0, ins_50.Rcut / ins_50.sigma)
 ax.set_ylim(0, 60)
 
-ax.axhline(12, 0, ins_50.Rcut / ins.sigma, color="black", linestyle=":", linewidth=1)
-ax.axhline(
-    12 + 6, 0, ins_50.Rcut / ins.sigma, color="black", linestyle=":", linewidth=1
-)
-ax.axhline(
-    12 + 6 + 24, 0, ins_50.Rcut / ins.sigma, color="black", linestyle=":", linewidth=1
-)
 fig.savefig(
     f"plots/cdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_zoom.{file_format}",
     bbox_inches="tight",
@@ -186,57 +188,3 @@ ins = Plots(
 )
 folder = "/home/loerl/ictp-diploma/num2/project/tmp"
 ins.make_animation(folder)
-# %%
-
-# ax = plt.figure().add_subplot(projection="3d")
-# plt.subplots_adjust(right=1, top=1, left=0, bottom=0)
-# for t in range(0, ins.Niter):
-#     ax.clear()
-#     ax.set_xlim(0, ins.L)
-#     ax.set_ylim(0, ins.L)
-#     ax.set_zlim(0, ins.L)
-#     ax.scatter(
-#         ins.pos_config[t, :, 0][:],
-#         ins.pos_config[t, :, 1][:],
-#         ins.pos_config[t, :, 2][:],
-#     )
-# plt.pause(0.03)
-# plt.savefig(f"{folder}/{t}.png", dpi=100)
-# plt.show()
-
-
-# %%
-# single rdf
-# pos = ins.pos_config[-1]
-# i = ins.N // 2
-# pos_diff = pos[i] - pos
-# # remove self interaction (j=i)
-# pos_diff = np.delete(pos_diff, i, 0)
-# pos_diff = ins.min_image(pos_diff)
-# dist = np.linalg.norm(
-#     pos_diff, ord=2, axis=1
-# )  # distance between ith particle and others
-
-# cut up to L/2
-# dist = dist[dist <= ins.L / 2]
-
-# fig, ax = plt.subplots()
-# h, bin_edges, patches = ax.hist(
-#     dist,
-#     density=0,
-#     bins=30,
-#     linewidth=2.0,
-# )
-# h, bin_edges = np.histogram(
-#     dist,
-#     density=0,
-#     bins=30,
-# )
-# dr = bin_edges[1] - bin_edges[0]
-# bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2.0
-# denominator = 4 * np.pi * bin_centers**2 * dr * ins.N / ins.L**3
-# rdf = h / denominator
-
-# ax.vlines(ins.L / 2, 0, 60, color="red")
-# fig, ax = plt.subplots()
-# ax.plot(bin_centers, rdf, marker="o")

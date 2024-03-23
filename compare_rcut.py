@@ -4,7 +4,6 @@ from RDF import RDF
 from Plots import Plots
 import matplotlib.pyplot as plt
 import numpy as np
-import time
 
 file_format = "png"
 dpi = 400
@@ -40,6 +39,9 @@ ins_2 = Plots(
 
 # %%
 fig, ax = plt.subplots()
+ins_1.plot_specific_rdf(
+    time_snapshot=0, label=r"initial", linestyle=":", fig=fig, ax=ax
+)
 ins_1.plot_rdf(label=r"$R_{cut}=1$", fmt="o-", fig=fig, ax=ax)
 ins_2.plot_rdf(label=r"$R_{cut}=2$", fmt="s-", fig=fig, ax=ax)
 ax.set_title(
@@ -58,6 +60,9 @@ fig.savefig(
 CDF Plot
 """
 fig, ax = plt.subplots()
+ins_1.plot_specific_cdf(
+    time_snapshot=0, label=r"initial", fig=fig, ax=ax, linestyle=":"
+)
 ins_1.plot_cdf(label=r"$R_{cut}=1$", fig=fig, ax=ax, linestyle="--")
 ins_2.plot_cdf(label=r"$R_{cut}=2$", fig=fig, ax=ax, linestyle="-")
 ax.set_title(
@@ -74,29 +79,7 @@ fig.savefig(
 ax.set_xlim(0, ins_2.Rcut / ins_1.sigma)
 ax.set_ylim(0, 400)
 
-ax.axhline(12, 0, ins_2.Rcut / ins_1.sigma, color="black", linestyle=":", linewidth=1)
-ax.axhline(
-    12 + 6, 0, ins_2.Rcut / ins_1.sigma, color="black", linestyle=":", linewidth=1
-)
-ax.axhline(
-    12 + 6 + 24, 0, ins_2.Rcut / ins_1.sigma, color="black", linestyle=":", linewidth=1
-)
-ax.axhline(
-    12 + 6 + 24 + 12,
-    0,
-    ins_2.Rcut / ins_1.sigma,
-    color="black",
-    linestyle=":",
-    linewidth=1,
-)
-ax.axhline(
-    12 + 6 + 24 + 12 + 24,
-    0,
-    ins_2.Rcut / ins_1.sigma,
-    color="black",
-    linestyle=":",
-    linewidth=1,
-)
+
 fig.savefig(
     f"plots/cdf_combined_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_zoom.{file_format}",
     bbox_inches="tight",

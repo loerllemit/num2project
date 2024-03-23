@@ -40,6 +40,22 @@ class Plots(RDF):
             fontweight="bold",
         )
 
+    def plot_specific_rdf(self, label, fig, ax, time_snapshot=-1, linestyle="-"):
+        x_vals, avg = self.get_specific_rdf(time_snapshot)
+        ax.plot(
+            x_vals / self.sigma,
+            avg,
+            # markersize=4,
+            # marker="o",
+            label=label,
+            linestyle=linestyle,
+        )
+        ax.set_ylabel("radial distribution function", fontsize=15)
+        ax.set_xlabel(r"r/$\sigma$", fontsize=15)
+        ax.set_xlim(0, self.L * np.sqrt(3) / (4 * self.sigma))
+        ax.set_ylim(0)
+        ax.legend()
+
     def plot_rdf(
         self,
         label,
@@ -60,6 +76,15 @@ class Plots(RDF):
         ax.set_ylabel("radial distribution function", fontsize=15)
         ax.set_xlabel(r"r/$\sigma$", fontsize=15)
         ax.set_xlim(0, self.L * np.sqrt(3) / (4 * self.sigma))
+        ax.set_ylim(0)
+        ax.legend()
+
+    def plot_specific_cdf(self, label, fig, ax, linestyle="-", time_snapshot=-1):
+        x_vals, running_sum = self.get_specific_cdf(time_snapshot)
+        ax.plot(x_vals / self.sigma, running_sum, label=label, linestyle=linestyle)
+        ax.set_ylabel("number of particles", fontsize=15)
+        ax.set_xlabel(r"r/$\sigma$", fontsize=15)
+        ax.set_xlim(0, self.L * np.sqrt(3) / (2 * self.sigma))
         ax.set_ylim(0)
         ax.legend()
 
