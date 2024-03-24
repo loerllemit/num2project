@@ -75,8 +75,8 @@ class MolDyn:
         return vel.rvs([self.N, 3])
 
     def init_vel(self):
-        # self.std_dev = np.sqrt(self.Kb * self.Temp * 1.0 / self.mass)
-        return np.random.rand(self.N, 3)
+        # self.std_dev = np.sqrt(self.Kb * self.Temp  / self.mass)
+        return abs(-1 + 2 * np.random.rand(self.N, 3))
 
     def init_vel3(self):
         vel0_mag = np.sqrt(3 * self.Kb * self.Temp / self.mass)
@@ -84,6 +84,15 @@ class MolDyn:
         vel_norm = np.linalg.norm(vel, ord=2, axis=1)
         vel = vel0_mag * np.random.randn(self.N, 3) / vel_norm[:, None]
         return vel
+
+    # Maxwell-Boltzmann Distribution
+    def vel_MB(self, v):
+        self.std_dev = np.sqrt(self.Kb * self.Temp / self.mass)
+        return (
+            1
+            / (2 * np.pi * self.std_dev**2) ** 0.5
+            * np.exp(-(v**2) / (2 * self.std_dev**2))
+        )
 
     def get_temp(self, vel):
         vel_squared = np.linalg.norm(vel, ord=2, axis=1) ** 2
@@ -166,6 +175,11 @@ class MolDyn:
         np.save(
             f"data/positions_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
             self.pos_config,
+        )
+        # save velocities for all timesteps
+        np.save(
+            f"data/velocities_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
+            self.vel_config,
         )
         # save temperatures for all timesteps
         np.save(

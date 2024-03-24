@@ -4,6 +4,9 @@ from RDF import RDF
 from Plots import Plots
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+
+colors = sns.color_palette("deep")
 
 file_format = "png"
 dpi = 400
@@ -13,11 +16,6 @@ thermo_rate = 10
 box_scale = 1
 equilibration = 500
 Niter = 2000
-
-# %%
-"""
- RDF PLOT 
-"""
 
 ins_1 = Plots(
     temp=temp,
@@ -38,12 +36,50 @@ ins_2 = Plots(
 )
 
 # %%
+"""
+ Velocity Distribution PLOT 
+"""
+time_snapshot = -1
+show_exact = 1
+
+fig, ax = plt.subplots()
+ins_1.plot_vel_dist(
+    fig,
+    ax,
+    label=rf"$R_{{cut}}={ins_1.rcut_scale}$",
+    color=colors[0],
+    time_snapshot=time_snapshot,
+    show_exact=show_exact,
+)
+ins_2.plot_vel_dist(
+    fig,
+    ax,
+    label=rf"$R_{{cut}}={ins_2.rcut_scale}$",
+    color=colors[1],
+    time_snapshot=time_snapshot,
+    show_exact=show_exact,
+)
+ax.set_title(
+    rf"Velocity Distribution at T={temp} K, L={box_scale}",
+    fontsize=15,
+    fontweight="bold",
+)
+fig.savefig(
+    f"plots/veldist_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_final.{file_format}",
+    bbox_inches="tight",
+    dpi=dpi,
+)
+# %%
+"""
+ RDF PLOT 
+"""
+
 fig, ax = plt.subplots()
 ins_1.plot_specific_rdf(
     time_snapshot=0, label=r"initial", linestyle=":", fig=fig, ax=ax
 )
-ins_1.plot_rdf(label=r"$R_{cut}=1$", fmt="o-", fig=fig, ax=ax)
-ins_2.plot_rdf(label=r"$R_{cut}=2$", fmt="s-", fig=fig, ax=ax)
+ins_1.plot_rdf(label=rf"$R_{{cut}}={ins_1.rcut_scale}$", fmt="o-", fig=fig, ax=ax)
+ins_2.plot_rdf(label=rf"$R_{{cut}}={ins_2.rcut_scale}$", fmt="s-", fig=fig, ax=ax)
 ax.set_title(
     rf"T={temp} K, L={box_scale}",
     fontsize=20,
@@ -63,8 +99,8 @@ fig, ax = plt.subplots()
 ins_1.plot_specific_cdf(
     time_snapshot=0, label=r"initial", fig=fig, ax=ax, linestyle=":"
 )
-ins_1.plot_cdf(label=r"$R_{cut}=1$", fig=fig, ax=ax, linestyle="--")
-ins_2.plot_cdf(label=r"$R_{cut}=2$", fig=fig, ax=ax, linestyle="-")
+ins_1.plot_cdf(label=rf"$R_{{cut}}={ins_1.rcut_scale}$", fig=fig, ax=ax, linestyle="--")
+ins_2.plot_cdf(label=rf"$R_{{cut}}={ins_2.rcut_scale}$", fig=fig, ax=ax, linestyle="-")
 ax.set_title(
     rf"T={temp} K, L={box_scale}",
     fontsize=20,

@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 from PIL import Image
+import seaborn as sns
+
+colors = sns.color_palette("deep")
 
 
 class Plots(RDF):
@@ -11,6 +14,7 @@ class Plots(RDF):
         super().__init__(**kwargs)
         self.load_temp_arr()
         self.load_pos_config()
+        self.load_vel_config()
 
     def load_temp_arr(self):
         self.temp_arr = np.load(
@@ -20,6 +24,11 @@ class Plots(RDF):
     def load_pos_config(self):
         self.pos_config = np.load(
             f"data/positions_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
+        )
+
+    def load_vel_config(self):
+        self.vel_config = np.load(
+            f"data/velocities_T{self.Temp}_L{self.box_scale}_Rc{self.rcut_scale}_Tr{self.thermo_rate}_Eq{self.equilibration}_step{self.Niter}.npy",
         )
 
     def plot_temp(self, start_time, fig, ax):
@@ -95,6 +104,23 @@ class Plots(RDF):
         ax.set_xlabel(r"r/$\sigma$", fontsize=15)
         ax.set_xlim(0, self.L * np.sqrt(3) / (2 * self.sigma))
         ax.set_ylim(0)
+        ax.legend()
+
+    def plot_vel_dist(self, fig, ax, color, label, time_snapshot=-1, show_exact=True):
+        v = np.linspace(-1000, 1000, 1000)
+        ax.hist(
+            self.vel_config[time_snapshot, :, 2],
+            density=True,
+            bins=50,
+            histtype="step",
+            label=label,
+            color=color,
+            linewidth=2.0,
+        )
+        if show_exact:
+            ax.plot(v, self.vel_MB(v), color=color)
+        ax.set_xlabel("velocity along z (m/s)", fontsize=15)
+        ax.set_ylabel("probability density (s/m)", fontsize=15)
         ax.legend()
 
     def make_animation(self, frame_folder):
