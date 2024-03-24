@@ -39,36 +39,41 @@ ins_2 = Plots(
 """
  Velocity Distribution PLOT 
 """
-time_snapshot = -1
-show_exact = 1
+for keyword in ["initial", "final"]:
+    if keyword == "initial":
+        time_snapshot = 0
+        show_exact = False
+    elif keyword == "final":
+        time_snapshot = -1
+        show_exact = True
 
-fig, ax = plt.subplots()
-ins_1.plot_vel_dist(
-    fig,
-    ax,
-    label=rf"$R_{{cut}}={ins_1.rcut_scale}$",
-    color=colors[0],
-    time_snapshot=time_snapshot,
-    show_exact=show_exact,
-)
-ins_2.plot_vel_dist(
-    fig,
-    ax,
-    label=rf"$R_{{cut}}={ins_2.rcut_scale}$",
-    color=colors[1],
-    time_snapshot=time_snapshot,
-    show_exact=show_exact,
-)
-ax.set_title(
-    rf"Velocity Distribution at T={temp} K, L={box_scale}",
-    fontsize=15,
-    fontweight="bold",
-)
-fig.savefig(
-    f"plots/veldist_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_final.{file_format}",
-    bbox_inches="tight",
-    dpi=dpi,
-)
+    fig, ax = plt.subplots()
+    ins_1.plot_vel_dist(
+        fig,
+        ax,
+        label=rf"$R_{{cut}}={ins_1.rcut_scale}$",
+        color=colors[0],
+        time_snapshot=time_snapshot,
+        show_exact=show_exact,
+    )
+    ins_2.plot_vel_dist(
+        fig,
+        ax,
+        label=rf"$R_{{cut}}={ins_2.rcut_scale}$",
+        color=colors[1],
+        time_snapshot=time_snapshot,
+        show_exact=show_exact,
+    )
+    ax.set_title(
+        rf"Velocity Distribution at T={temp} K, L={box_scale}",
+        fontsize=15,
+        fontweight="bold",
+    )
+    fig.savefig(
+        f"plots/veldist_T{temp}_L{box_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_{keyword}.{file_format}",
+        bbox_inches="tight",
+        dpi=dpi,
+    )
 # %%
 """
  RDF PLOT 

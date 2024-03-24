@@ -12,9 +12,9 @@ colors = sns.color_palette("deep")
 file_format = "png"
 dpi = 400
 
-temp = 94
-box_scale = 1
-rcut_scale = 2
+temp = 300
+box_scale = 2
+rcut_scale = 1
 thermo_rate = 10
 equilibration = 500
 Niter = 2000

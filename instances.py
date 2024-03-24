@@ -12,8 +12,8 @@ colors = sns.color_palette("deep")
 file_format = "png"
 dpi = 400
 
-temp = 50
-box_scale = 1
+temp = 300
+box_scale = 2
 rcut_scale = 1
 thermo_rate = 10
 equilibration = 500
@@ -60,7 +60,7 @@ ins = MolDyn(
 )
 ## time the execution
 start = time.time()
-ins.run_md()
+# ins.run_md()
 end = time.time()
 print("execution time: ", end - start)
 
@@ -68,45 +68,59 @@ print("execution time: ", end - start)
 """
  Velocity Distribution PLOT 
 """
-time_snapshot = 0
-show_exact = 0
+for keyword in ["initial", "final"]:
+    if keyword == "initial":
+        time_snapshot = 0
+        show_exact = False
+    elif keyword == "final":
+        time_snapshot = -1
+        show_exact = True
 
+    fig, ax = plt.subplots()
+    ins_50.plot_vel_dist(
+        fig,
+        ax,
+        label=f"T={ins_50.Temp} K",
+        color=colors[0],
+        time_snapshot=time_snapshot,
+        show_exact=show_exact,
+    )
+    ins_94.plot_vel_dist(
+        fig,
+        ax,
+        label=f"T={ins_94.Temp} K",
+        color=colors[1],
+        time_snapshot=time_snapshot,
+        show_exact=show_exact,
+    )
+    ins_300.plot_vel_dist(
+        fig,
+        ax,
+        label=f"T={ins_300.Temp} K",
+        color=colors[2],
+        time_snapshot=time_snapshot,
+        show_exact=show_exact,
+    )
+    ax.set_title(
+        rf"Velocity Distribution at L={box_scale}, R$_{{cut}}$={rcut_scale}",
+        fontsize=15,
+        fontweight="bold",
+    )
+    fig.savefig(
+        f"plots/veldist_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_{keyword}.{file_format}",
+        bbox_inches="tight",
+        dpi=dpi,
+    )
+
+# %%
+"""
+ Speed Distribution PLOT 
+"""
+s = np.linspace(0, 1200, 1000)
+vel_norm = np.linalg.norm(ins_50.vel_config[-1], ord=2, axis=1)
 fig, ax = plt.subplots()
-ins_50.plot_vel_dist(
-    fig,
-    ax,
-    label=f"T={ins_50.Temp} K",
-    color=colors[0],
-    time_snapshot=time_snapshot,
-    show_exact=show_exact,
-)
-ins_94.plot_vel_dist(
-    fig,
-    ax,
-    label=f"T={ins_94.Temp} K",
-    color=colors[1],
-    time_snapshot=time_snapshot,
-    show_exact=show_exact,
-)
-ins_300.plot_vel_dist(
-    fig,
-    ax,
-    label=f"T={ins_300.Temp} K",
-    color=colors[2],
-    time_snapshot=time_snapshot,
-    show_exact=show_exact,
-)
-ax.set_title(
-    rf"Velocity Distribution at L={box_scale}, R$_{{cut}}$={rcut_scale}",
-    fontsize=15,
-    fontweight="bold",
-)
-# fig.savefig(
-#     f"plots/veldist_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}_final.{file_format}",
-#     bbox_inches="tight",
-#     dpi=dpi,
-# )
-
+ax.hist(vel_norm, density=1)
+ax.plot(s, ins_50.speed_MB(s))
 # %%
 """
  TEMPERATURE PLOT 
@@ -124,11 +138,11 @@ ins = Plots(
 fig, ax = plt.subplots()
 ins.plot_temp(start_time=500, fig=fig, ax=ax)
 
-# fig.savefig(
-#     f"plots/temperatures_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
-#     bbox_inches="tight",
-#     dpi=dpi,
-# )
+fig.savefig(
+    f"plots/temperatures_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    bbox_inches="tight",
+    dpi=dpi,
+)
 # %% temp rms deviation
 temp_dat = ins.temp_arr[equilibration : ins.Niter]
 np.sqrt(np.mean(temp_dat**2) - np.mean(temp_dat) ** 2) / np.mean(temp_dat)
@@ -153,11 +167,11 @@ ax.set_title(
     fontsize=20,
     fontweight="bold",
 )
-# fig.savefig(
-#     f"plots/rdf_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
-#     bbox_inches="tight",
-#     dpi=dpi,
-# )
+fig.savefig(
+    f"plots/rdf_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    bbox_inches="tight",
+    dpi=dpi,
+)
 
 
 # %%
@@ -177,11 +191,11 @@ ax.set_title(
     fontsize=20,
     fontweight="bold",
 )
-# fig.savefig(
-#     f"plots/rdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
-#     bbox_inches="tight",
-#     dpi=dpi,
-# )
+fig.savefig(
+    f"plots/rdf_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    bbox_inches="tight",
+    dpi=dpi,
+)
 # %%
 """
 CDF Plot
@@ -231,3 +245,5 @@ ins = Plots(
 )
 folder = "/home/loerl/ictp-diploma/num2/project/tmp"
 ins.make_animation(folder)
+
+# %%

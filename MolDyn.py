@@ -76,7 +76,7 @@ class MolDyn:
 
     def init_vel(self):
         # self.std_dev = np.sqrt(self.Kb * self.Temp  / self.mass)
-        return abs(-1 + 2 * np.random.rand(self.N, 3))
+        return -1 + 2 * np.random.rand(self.N, 3)
 
     def init_vel3(self):
         vel0_mag = np.sqrt(3 * self.Kb * self.Temp / self.mass)
@@ -85,13 +85,25 @@ class MolDyn:
         vel = vel0_mag * np.random.randn(self.N, 3) / vel_norm[:, None]
         return vel
 
-    # Maxwell-Boltzmann Distribution
+    # Maxwell-Boltzmann Velocity Distribution
     def vel_MB(self, v):
         self.std_dev = np.sqrt(self.Kb * self.Temp / self.mass)
         return (
             1
             / (2 * np.pi * self.std_dev**2) ** 0.5
             * np.exp(-(v**2) / (2 * self.std_dev**2))
+        )
+
+    # Maxwell-Boltzmann Velocity Distribution
+    def speed_MB(self, s):
+        self.std_dev = np.sqrt(self.Kb * self.Temp / self.mass)
+        return (
+            1
+            / (2 * np.pi * self.std_dev**2) ** 1.5
+            * 4
+            * np.pi
+            * s**2
+            * np.exp(-(s**2) / (2 * self.std_dev**2))
         )
 
     def get_temp(self, vel):
