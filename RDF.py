@@ -5,8 +5,9 @@ import numpy as np
 class RDF(MolDyn):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.bin_num = 100
+        self.bin_num = 100  # for binning the rdf histogram
 
+    # get all distances from unique pairs of particles
     def get_all_pair_dist(self, pos):
         dist_list = []
         for i in range(self.N):  # ith particle
@@ -21,12 +22,13 @@ class RDF(MolDyn):
         h, bin_edges = np.histogram(
             dist_list, density=0, bins=self.bin_num, range=(0, self.L * np.sqrt(3) / 2)
         )
-        self.dr = bin_edges[1] - bin_edges[0]
+        self.dr = bin_edges[1] - bin_edges[0]  # bin width
         self.bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2.0
         denominator = 4 * np.pi * self.bin_centers**2 * self.dr * self.N / self.L**3
         # twice rdf to take account min.image
         return self.bin_centers, 2 * h / denominator
 
+    # get radial dist. func. for specific timestep
     def get_specific_rdf(self, time_snapshot):
         dist_list = self.get_all_pair_dist(self.pos_config[int(time_snapshot)])
         self.bin_centers, single_rdf_arr = self.get_rdf(dist_list)
@@ -34,6 +36,7 @@ class RDF(MolDyn):
 
         return self.bin_centers, single_rdf_arr
 
+    # combine multiple RDF from different time steps
     def combine_rdf(self):
         snapshots = np.linspace(self.equilibration, self.Niter, num=8, endpoint=False)
         rdf_config = np.empty([len(snapshots), self.bin_num])
@@ -47,6 +50,7 @@ class RDF(MolDyn):
         errors = np.std(rdf_config, axis=0, ddof=1) / np.sqrt(len(snapshots))
         return x_vals, avg, errors
 
+    # get cumulative dist. func. for specific timestep
     def get_specific_cdf(self, time_snapshot):
         x_vals, avg = self.get_specific_rdf(time_snapshot)
         running_sum = (
@@ -61,6 +65,7 @@ class RDF(MolDyn):
         running_sum = running_sum + 1
         return x_vals, running_sum
 
+    # combine multiple CDF from different time steps
     def combine_cdf(self):
         x_vals, avg, _ = self.combine_rdf()
         running_sum = (

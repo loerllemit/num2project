@@ -54,8 +54,6 @@ class Plots(RDF):
         ax.plot(
             x_vals / self.sigma,
             avg,
-            # markersize=4,
-            # marker="o",
             label=label,
             linestyle=linestyle,
         )

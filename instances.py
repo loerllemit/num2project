@@ -12,12 +12,17 @@ colors = sns.color_palette("deep")
 file_format = "png"
 dpi = 400
 
+"""
+change these parameters
+"""
 temp = 300
 box_scale = 1
 rcut_scale = 1
 thermo_rate = 10
 equilibration = 500
 Niter = 2000
+#######################
+
 
 ins_50 = Plots(
     temp=50,
@@ -60,7 +65,7 @@ ins = MolDyn(
 )
 ## time the execution
 start = time.time()
-# ins.run_md()
+ins.run_md()
 end = time.time()
 print("execution time: ", end - start)
 
