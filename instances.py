@@ -13,7 +13,7 @@ file_format = "png"
 dpi = 400
 
 temp = 300
-box_scale = 2
+box_scale = 1
 rcut_scale = 1
 thermo_rate = 10
 equilibration = 500
@@ -145,7 +145,7 @@ fig.savefig(
 )
 # %% temp rms deviation
 temp_dat = ins.temp_arr[equilibration : ins.Niter]
-np.sqrt(np.mean(temp_dat**2) - np.mean(temp_dat) ** 2) / np.mean(temp_dat)
+np.sqrt(np.mean(temp_dat**2) - np.mean(temp_dat) ** 2)  # / np.mean(temp_dat)
 
 # %%
 """
