@@ -58,7 +58,7 @@ class MolDyn:
             * np.exp(-(v**2) / (2 * self.std_dev**2))
         )
 
-    # Maxwell-Boltzmann Velocity Distribution
+    # Maxwell-Boltzmann Speed Distribution
     def speed_MB(self, s):
         self.std_dev = np.sqrt(self.Kb * self.Temp / self.mass)
         return (
