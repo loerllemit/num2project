@@ -67,15 +67,13 @@ class RDF(MolDyn):
 
     # combine multiple CDF from different time steps
     def combine_cdf(self):
-        x_vals, avg, _ = self.combine_rdf()
-        running_sum = (
-            np.cumsum(avg * self.bin_centers**2)
-            * self.dr
-            * 4
-            * np.pi
-            * self.N
-            / self.L**3
-        )
-        # to include particle less than sigma
-        running_sum = running_sum + 1
-        return x_vals, running_sum
+        snapshots = np.linspace(self.equilibration, self.Niter, num=8, endpoint=False)
+        cdf_config = np.empty([len(snapshots), self.bin_num])
+
+        for count, t in enumerate(snapshots):
+            x_vals, running_sum = self.get_specific_cdf(int(t))
+            cdf_config[count] = running_sum
+
+        avg = np.mean(cdf_config, axis=0)
+        errors = np.std(cdf_config, axis=0, ddof=1) / np.sqrt(len(snapshots))
+        return x_vals, avg, errors

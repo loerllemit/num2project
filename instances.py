@@ -15,7 +15,7 @@ dpi = 400
 """
 change these parameters
 """
-temp = 300
+temp = 50
 box_scale = 1
 rcut_scale = 1
 thermo_rate = 10
@@ -209,9 +209,9 @@ fig, ax = plt.subplots()
 ins_50.plot_specific_cdf(
     time_snapshot=0, label=r"initial", fig=fig, ax=ax, linestyle=":"
 )
-ins_50.plot_cdf(label=f"T={ins_50.Temp} K", fig=fig, ax=ax, linestyle="--")
-ins_94.plot_cdf(label=f"T={ins_94.Temp} K", fig=fig, ax=ax, linestyle="-")
-ins_300.plot_cdf(label=f"T={ins_300.Temp} K", fig=fig, ax=ax, linestyle="-.")
+ins_50.plot_cdf(label=f"T={ins_50.Temp} K", fig=fig, ax=ax, linestyle="--", fmt="o")
+ins_94.plot_cdf(label=f"T={ins_94.Temp} K", fig=fig, ax=ax, linestyle="-", fmt="s")
+ins_300.plot_cdf(label=f"T={ins_300.Temp} K", fig=fig, ax=ax, linestyle="-.", fmt="^")
 
 ax.set_title(
     rf"L={box_scale}, R$_{{cut}}$={rcut_scale}",

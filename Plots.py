@@ -95,9 +95,18 @@ class Plots(RDF):
         ax.set_ylim(0)
         ax.legend()
 
-    def plot_cdf(self, label, fig, ax, linestyle="-"):
-        x_vals, running_sum = self.combine_cdf()
-        ax.plot(x_vals / self.sigma, running_sum, label=label, linestyle=linestyle)
+    def plot_cdf(self, label, fig, ax, linestyle="-", fmt="o"):
+        x_vals, avg, errors = self.combine_cdf()
+        ax.errorbar(
+            x_vals / self.sigma,
+            avg,
+            yerr=errors,
+            markersize=3,
+            fmt=fmt,
+            capsize=3.5,
+            label=label,
+            linestyle=linestyle,
+        )
         ax.set_ylabel("number of particles", fontsize=15)
         ax.set_xlabel(r"r/$\sigma$", fontsize=15)
         ax.set_xlim(0, self.L * np.sqrt(3) / (2 * self.sigma))
