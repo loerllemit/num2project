@@ -1,5 +1,6 @@
 # %%
 from RDF import RDF
+from MSD import MSD
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
@@ -9,7 +10,7 @@ import seaborn as sns
 colors = sns.color_palette("deep")
 
 
-class Plots(RDF):
+class Plots(RDF, MSD):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.load_temp_arr()
@@ -166,3 +167,28 @@ class Plots(RDF):
             duration=100,
             loop=1,
         )
+
+    def plot_msd(self, fig, ax, color, label, start=250):
+        self.get_msd()
+        ax.plot(
+            self.dt_arr,
+            self.fit_msd(start)(self.dt_arr),
+            color=color,
+            linestyle="dotted",
+        )
+        ax.errorbar(
+            self.dt_arr,
+            self.msd_arr,
+            yerr=self.msd_error_arr,
+            # markersize=3,
+            capsize=3.5,
+            label=label,
+            color=color,
+        )
+        ax.set_ylabel(r"Mean Square Displacement ($\AA^2$)", fontsize=15)
+        ax.set_xlabel("time (ps)", fontsize=15)
+        ax.set_xlim(0)
+        ax.set_ylim(
+            0,
+        )
+        ax.legend()

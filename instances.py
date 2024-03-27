@@ -15,9 +15,9 @@ dpi = 400
 """
 change these parameters
 """
-temp = 50
+temp = 94
 box_scale = 1
-rcut_scale = 1
+rcut_scale = 0.8
 thermo_rate = 10
 equilibration = 500
 Niter = 2000
@@ -252,3 +252,19 @@ folder = "/home/loerl/ictp-diploma/num2/project/tmp"
 ins.make_animation(folder)
 
 # %%
+"""
+ MEAN SQUARE DISPLACEMENT
+"""
+fig, ax = plt.subplots()
+ins_50.plot_msd(fig, ax, color="red", label=f"{ins_50.Temp} K")
+ins_94.plot_msd(fig, ax, color="green", label=f"{ins_94.Temp} K")
+ins_300.plot_msd(fig, ax, start=200, color="blue", label=f"{ins_300.Temp} K")
+ax.set_xlim(0, 3.5)
+ax.set_ylim(0, 100)
+print(ins_50.msd_coef)
+
+fig.savefig(
+    f"plots/msd_combined_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+    bbox_inches="tight",
+    dpi=dpi,
+)
