@@ -5,7 +5,7 @@ import numpy as np
 class RDF(MolDyn):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.bin_num = 100  # for binning the rdf histogram
+        self.bin_num = 100 * self.box_scale  # for binning the rdf histogram
 
     # get all distances from unique pairs of particles
     def get_all_pair_dist(self, pos):
@@ -47,7 +47,7 @@ class RDF(MolDyn):
 
         x_vals = self.bin_centers
         avg = np.mean(rdf_config, axis=0)
-        errors = np.std(rdf_config, axis=0, ddof=1) / np.sqrt(len(snapshots))
+        errors = np.std(rdf_config, axis=0, ddof=1)  # / np.sqrt(len(snapshots))
         return x_vals, avg, errors
 
     # get cumulative dist. func. for specific timestep
@@ -75,5 +75,5 @@ class RDF(MolDyn):
             cdf_config[count] = running_sum
 
         avg = np.mean(cdf_config, axis=0)
-        errors = np.std(cdf_config, axis=0, ddof=1) / np.sqrt(len(snapshots))
+        errors = np.std(cdf_config, axis=0, ddof=1)  # / np.sqrt(len(snapshots))
         return x_vals, avg, errors

@@ -17,6 +17,15 @@ box_scale = 1
 equilibration = 500
 Niter = 2000
 
+ins_0 = Plots(
+    temp=temp,
+    box_scale=box_scale,
+    rcut_scale=0.8,
+    thermo_rate=thermo_rate,
+    equilibration=equilibration,
+    Niter=Niter,
+)
+
 ins_1 = Plots(
     temp=temp,
     box_scale=box_scale,
@@ -48,6 +57,14 @@ for keyword in ["initial", "final"]:
         show_exact = True
 
     fig, ax = plt.subplots()
+    ins_0.plot_vel_dist(
+        fig,
+        ax,
+        label=rf"$R_{{cut}}={ins_0.rcut_scale}$",
+        color=colors[2],
+        time_snapshot=time_snapshot,
+        show_exact=show_exact,
+    )
     ins_1.plot_vel_dist(
         fig,
         ax,
@@ -83,6 +100,7 @@ fig, ax = plt.subplots()
 ins_1.plot_specific_rdf(
     time_snapshot=0, label=r"initial", linestyle=":", fig=fig, ax=ax
 )
+ins_0.plot_rdf(label=rf"$R_{{cut}}={ins_0.rcut_scale}$", fmt="d-", fig=fig, ax=ax)
 ins_1.plot_rdf(label=rf"$R_{{cut}}={ins_1.rcut_scale}$", fmt="o-", fig=fig, ax=ax)
 ins_2.plot_rdf(label=rf"$R_{{cut}}={ins_2.rcut_scale}$", fmt="s-", fig=fig, ax=ax)
 ax.set_title(
@@ -104,6 +122,7 @@ fig, ax = plt.subplots()
 ins_1.plot_specific_cdf(
     time_snapshot=0, label=r"initial", fig=fig, ax=ax, linestyle=":"
 )
+ins_0.plot_cdf(label=rf"$R_{{cut}}={ins_0.rcut_scale}$", fig=fig, ax=ax, linestyle="--")
 ins_1.plot_cdf(label=rf"$R_{{cut}}={ins_1.rcut_scale}$", fig=fig, ax=ax, linestyle="--")
 ins_2.plot_cdf(label=rf"$R_{{cut}}={ins_2.rcut_scale}$", fig=fig, ax=ax, linestyle="-")
 ax.set_title(
