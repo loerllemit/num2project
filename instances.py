@@ -15,9 +15,9 @@ dpi = 400
 """
 change these parameters
 """
-temp = 94
+temp = 50
 box_scale = 1
-rcut_scale = 0.8
+rcut_scale = 1
 thermo_rate = 10
 equilibration = 500
 Niter = 2000
@@ -65,7 +65,7 @@ ins = MolDyn(
 )
 ## time the execution
 start = time.time()
-ins.run_md()
+# ins.run_md()
 end = time.time()
 print("execution time: ", end - start)
 
@@ -143,14 +143,14 @@ ins = Plots(
 fig, ax = plt.subplots()
 ins.plot_temp(start_time=500, fig=fig, ax=ax)
 
-fig.savefig(
-    f"plots/temperatures_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
-    bbox_inches="tight",
-    dpi=dpi,
-)
+# fig.savefig(
+#     f"plots/temperatures_T{temp}_L{box_scale}_Rc{rcut_scale}_Tr{thermo_rate}_Eq{equilibration}_step{Niter}.{file_format}",
+#     bbox_inches="tight",
+#     dpi=dpi,
+# )
 # %% temp rms deviation
 temp_dat = ins.temp_arr[equilibration : ins.Niter]
-np.sqrt(np.mean(temp_dat**2) - np.mean(temp_dat) ** 2)  # / np.mean(temp_dat)
+np.sqrt(np.mean(temp_dat**2) - np.mean(temp_dat) ** 2) / np.mean(temp_dat)
 
 # %%
 """
